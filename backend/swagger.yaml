@@ -1,0 +1,2744 @@
+swagger: "2.0"
+info:
+  description: "Trainer REST API documentation"
+  version: "1.0.0"
+  title: "Trainer"
+host: "trainer.ksi.fit.cvut.cz"
+basePath: "/api"
+tags:
+- name: "auth"
+  description: "Operations used for authenticating"
+- name: "courses"
+  description: "Operations with courses"
+- name: "course-users"
+  description: "Operations with course users"
+- name: "weeks"
+  description: "Operations with weeks"
+- name: "lessons"
+  description: "Operations with lessons"
+- name: "lesson-users"
+  description: "Operations with lesson users"
+- name: "lesson-modules"
+  description: "Operation with lesson modules"
+- name: "modules"
+  description: "Operations with modules"
+- name: "images"
+  description: "Operations with images"
+- name: "student-modules"
+  description: "Operations with student modules"
+- name: "notifications"
+  description: "Operations with notifications"
+- name: "code-module"
+  description: "Operations with code module"
+schemes:
+- "https"
+paths:
+  # Authentication
+  /auth/settings:
+    get:
+      tags:
+        - "auth"
+      summary: "Get FIT OAuth settings"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Success, auth settings"
+          schema:
+            $ref: "#/definitions/AuthSettingsDTO"
+  /auth:
+    post:
+      tags:
+        - "auth"
+      summary: "Perform login with FIT OAuth code"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "FIT OAuth code"
+          required: true
+          schema:
+            $ref: "#/definitions/AuthDTO"
+      responses:
+        "200":
+          description: "Success, user login details"
+          schema:
+            $ref: "#/definitions/UserLoginDTO"
+        "400":
+          description: "Failure, wrong code"
+
+  # Courses
+  /courses:
+    get:
+      tags:
+        - "courses"
+      summary: "Get course list"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Success, course list"
+          schema:
+            $ref: "#/definitions/CourseFindDTOArray"
+      security:
+        - login_secret: [ ]
+  /courses/{id}:
+    get:
+      tags:
+        - "courses"
+      summary: "Get detail of course with given id"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique course identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, course detail"
+          schema:
+            $ref: "#/definitions/CourseGetDTO"
+      security:
+        - login_secret: [ ]
+  /courses/{id}/secret:
+    put:
+      tags:
+        - "courses"
+      summary: "Set course secret"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of the course"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "secret"
+          required: true
+          schema:
+            $ref: "#/definitions/CourseSecretDTO"
+      responses:
+        "200":
+          description: "Success, secret updated"
+          schema:
+            $ref: "#/definitions/CourseGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to set course secret"
+        "404":
+          description: "Course with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /courses/me:
+    put:
+      tags:
+        - "courses"
+      summary: "Join course with given secret"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "secret"
+          required: true
+          schema:
+            $ref: "#/definitions/CourseSecretDTO"
+      responses:
+        "200":
+          description: "Success, course joined"
+          schema:
+            $ref: "#/definitions/CourseGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "400":
+          description: "User is already member of the course"
+        "404":
+          description: "Course with given secret not found"
+      security:
+        - login_secret: [ ]
+  /courses/{id}/weeks/{weekId}:
+    get:
+      tags:
+        - "courses"
+      summary: "Get description of week in course with given id"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique course identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Unique week identifier"
+          name: "weekId"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, week detail (⚠️ without lessons ⚠️)"
+          schema:
+            $ref: "#/definitions/WeekFindDTO"
+      security:
+        - login_secret: [ ]
+
+  # Course Users
+  /courses/{id}/users:
+    get:
+      tags:
+        - "course-users"
+      summary: "Get course user list"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique course identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, course user list"
+          schema:
+            $ref: "#/definitions/CourseUserList"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to see course users"
+        "404":
+          description: "Course with given identifier not found"
+      security:
+        - login_secret: [ ]
+    post:
+      tags:
+        - "course-users"
+      summary: "Add users to course"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique course identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "Users to be added with role"
+          required: true
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CourseUserEditDTO"
+      responses:
+        "201":
+          description: "Success, created user list"
+          schema:
+            $ref: "#/definitions/CourseUserReadDTOArray"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to add new users"
+      security:
+        - login_secret: []
+  /courses/{id}/users/teachers:
+    get:
+      tags:
+        - "course-users"
+      summary: "Get course teacher list"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique course identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, course teacher list"
+          schema:
+            $ref: "#/definitions/CourseUserReadDTOArray"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Course with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /courses/{id}/users/{userId}:
+    get:
+      tags:
+        - "course-users"
+      summary: "Get course user detail"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique course identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Unique user identifier"
+          name: "userId"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, course user detail"
+          schema:
+            $ref: "#/definitions/CourseUserDetail"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to see the user detail"
+        "404":
+          description: "Course with given identifier not found"
+      security:
+        - login_secret: [ ]
+    delete:
+      tags:
+        - "course-users"
+      summary: "Remove existing user from course"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique course identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Unique user identifier"
+          name: "userId"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, user removed"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to edit the course"
+        "404":
+          description: "Course or user not found"
+      security:
+        - login_secret: []
+
+  # Weeks
+  /weeks:
+    post:
+      tags:
+        - "weeks"
+      summary: "Create new week"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Week to be created"
+          required: true
+          schema:
+            $ref: "#/definitions/WeekCreateDTO"
+      responses:
+        "201":
+          description: "Success, week created"
+          schema:
+            $ref: "#/definitions/WeekGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to create new week (not a teacher)"
+      security:
+        - login_secret: [ ]
+  /weeks/{id}:
+    patch:
+      tags:
+        - "weeks"
+      summary: "Edit existing week"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique week identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "Week values to be edited"
+          required: true
+          schema:
+            $ref: "#/definitions/WeekUpdateDTO"
+      responses:
+        "200":
+          description: "Success, week edited"
+          schema:
+            $ref: "#/definitions/WeekGetDTO"
+        "403":
+          description: "Insufficient rights to edit the week"
+        "404":
+          description: "Week with given identifier not found"
+      security:
+        - login_secret: [ ]
+    delete:
+      tags:
+        - "weeks"
+      summary: "Delete existing week"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique week identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, week deleted"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to delete the week"
+        "404":
+          description: "Week with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /weeks/{id}/lessons:
+    patch:
+      tags:
+        - "weeks"
+      summary: "Edit existing week lesson order"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique week identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "Lesson ids to be put into week with order"
+          required: true
+          schema:
+            $ref: "#/definitions/WeekLessonOrderDTO"
+      responses:
+        "204":
+          description: "Success, lessons edited"
+        "400":
+          description: "Tried to update lessons outside week's course"
+        "403":
+          description: "Insufficient rights to edit the week"
+        "404":
+          description: "Week or lesson with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /weeks/{id}/courses/{courseId}:
+    post:
+      tags:
+        - "weeks"
+      summary: "Clone week into new course"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique week identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Unique course identifier"
+          name: "courseId"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, week cloned"
+          schema:
+            $ref: "#/definitions/WeekGetDTO"
+        "403":
+          description: "Insufficient rights to edit the week or add week to the course"
+        "404":
+          description: "Week or course with given identifier not found"
+      security:
+        - login_secret: [ ]
+
+  # Lessons
+  /lessons:
+    post:
+      tags:
+        - "lessons"
+      summary: "Create new lesson"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Lesson to be created"
+          required: true
+          schema:
+            $ref: "#/definitions/LessonCreateDTO"
+      responses:
+        "201":
+          description: "Success, lesson created"
+          schema:
+            $ref: "#/definitions/LessonGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to create new lesson (not a teacher)"
+      security:
+        - login_secret: []
+  /lessons/current:
+    get:
+      tags:
+        - "lessons"
+      summary: "Get current running lessons"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Success, current lesson list"
+          schema:
+            $ref: "#/definitions/LessonGetDTOArray"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}:
+    get:
+      tags:
+        - "lessons"
+      summary: "Get detail of lesson with given id (including modules)"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, lesson detail"
+          schema:
+            $ref: "#/definitions/LessonGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to see lesson detail"
+        "404":
+          description: "Lesson with given identifier not found"
+      security:
+        - login_secret: [ ]
+    patch:
+      tags:
+        - "lessons"
+      summary: "Edit existing lesson"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson id"
+          name: "id"
+          type: "string"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "Lesson values to be edited"
+          required: true
+          schema:
+            $ref: "#/definitions/LessonUpdateDTO"
+      responses:
+        "200":
+          description: "Success, lesson edited"
+          schema:
+            $ref: "#/definitions/LessonGetDTO"
+        "403":
+          description: "Insufficient rights to edit the lesson"
+        "404":
+          description: "Lesson with given identifier not found"
+      security:
+        - login_secret: []
+    delete:
+      tags:
+        - "lessons"
+      summary: "Delete existing lesson"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "string"
+          required: true
+      responses:
+        "204":
+          description: "Success, lesson deleted"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to delete the lesson"
+        "404":
+          description: "Lesson with given identifier not found"
+      security:
+        - login_secret: []
+  /lessons/{id}/editData:
+    get:
+      tags:
+        - "lessons"
+      summary: "Get detail of lesson with given id without user data (teacher only)"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, lesson detail (without user data)"
+          schema:
+            $ref: "#/definitions/LessonGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights (not a teacher in the lesson)"
+        "404":
+          description: "Lesson with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/week:
+    get:
+      tags:
+        - "lessons"
+      summary: "Get detail of lesson week (with all lessons and modules)"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, lesson week detail"
+          schema:
+            $ref: "#/definitions/WeekDetailDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to see lesson"
+        "404":
+          description: "Lesson with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/courses/{courseId}:
+    post:
+      tags:
+        - "lessons"
+      summary: "Copy lesson (with all of its modules) into another course"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Identifier of course to copy into"
+          name: "courseId"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, copied lesson detail"
+          schema:
+            $ref: "#/definitions/LessonGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to edit original lesson / new course"
+        "404":
+          description: "Lesson or course with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/code:
+    post:
+      tags:
+        - "lessons"
+      summary: "Unlock all modules in given lesson"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "DTO with unlock code"
+          required: true
+          schema:
+            $ref: "#/definitions/LessonUnlockDTO"
+      responses:
+        "200":
+          description: "Success, lesson modules unlocked"
+        "400":
+          description: "Failure, wrong code"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Lesson with given identifier not found"
+      security:
+        - login_secret: [ ]
+
+  # Lesson users
+  /lessons/{id}/users:
+    get:
+      tags:
+        - "lesson-users"
+      summary: "Get lesson user list (with modules)"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, lesson user list (with modules)"
+          schema:
+            $ref: "#/definitions/LessonUserListDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to see lesson users"
+        "404":
+          description: "Lesson with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/users/{userId}:
+    get:
+      tags:
+        - "lesson-users"
+      summary: "Get lesson user detail (with modules)"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Unique user identifier"
+          name: "userId"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, lesson user detail (with modules)"
+          schema:
+            $ref: "#/definitions/LessonUserReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to see lesson user detail"
+        "404":
+          description: "Lesson or user with given identifier not found"
+      security:
+        - login_secret: [ ]
+    delete:
+      tags:
+        - "lesson-users"
+      summary: "Delete user progress in lesson"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Unique user identifier"
+          name: "userId"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, user progress deleted"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to delete user progress"
+        "404":
+          description: "Lesson or user with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/users/{userId}/week:
+    get:
+      tags:
+        - "lesson-users"
+      summary: "Get detail of lesson week (with all lessons and modules)"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Unique user identifier"
+          name: "userId"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, lesson week detail for given user"
+          schema:
+            $ref: "#/definitions/WeekDetailDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to see user detail"
+        "404":
+          description: "Lesson or user with given identifier not found"
+      security:
+        - login_secret: [ ]
+
+  # Lesson modules
+  /lessons/{id}/modules/{moduleId}/users:
+    get:
+      tags:
+        - "lesson-modules"
+      summary: "Get LessonModule users list"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Unique module identifier"
+          name: "moduleId"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, LessonModule users list"
+          schema:
+            $ref: "#/definitions/LessonModuleUserListDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to see LessonModule users"
+        "404":
+          description: "Lesson or module with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/modules:
+    post:
+      tags:
+        - "lesson-modules"
+      summary: "Copy module to lesson"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "Description of copied module and new order"
+          required: true
+          schema:
+            $ref: "#/definitions/LessonModuleCopyDTO"
+      responses:
+        "200":
+          description: "Success, newly created LessonModule"
+          schema:
+            $ref: "#/definitions/LessonModuleReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to access lesson or module"
+        "404":
+          description: "Lesson or module with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/modules/{moduleId}:
+    put:
+      tags:
+        - "lesson-modules"
+      summary: "Add module to lesson"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Identifier of module to add / modify"
+          name: "moduleId"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "Description of LessonModule properties"
+          required: true
+          schema:
+            $ref: "#/definitions/LessonModuleEditDTO"
+      responses:
+        "200":
+          description: "Success, created/updated LessonModule"
+          schema:
+            $ref: "#/definitions/LessonModuleReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to access lesson or module"
+        "404":
+          description: "Lesson or module with given identifier not found"
+      security:
+        - login_secret: [ ]
+    delete:
+      tags:
+        - "lesson-modules"
+      summary: "Remove module from lesson"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique lesson identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "path"
+          description: "Identifier of module to remove"
+          name: "moduleId"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, removed LessonModule"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to access lesson or module"
+        "404":
+          description: "Lesson or module with given identifier not found"
+      security:
+        - login_secret: [ ]
+
+  # Modules
+  /modules:
+    get:
+      tags:
+        - "modules"
+      summary: "Get module list"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Success, module list"
+          schema:
+            $ref: "#/definitions/ModuleFindDTOArray"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to view module list"
+      security:
+        - login_secret: [ ]
+    post:
+      tags:
+        - "modules"
+      summary: "Create new module"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Module to be created"
+          required: true
+          schema:
+            $ref: "#/definitions/ModuleCreateDTO"
+      responses:
+        "201":
+          description: "Success, module created"
+          schema:
+            $ref: "#/definitions/ModuleGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to create new module"
+      security:
+        - login_secret: []
+  /modules/{id}:
+    get:
+      tags:
+        - "modules"
+      summary: "Get module detail"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique module identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, module detail"
+          schema:
+            $ref: "#/definitions/ModuleGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to view the module"
+        "404":
+          description: "Module with given identifier not found"
+      security:
+        - login_secret: []
+    patch:
+      tags:
+        - "modules"
+      summary: "Edit existing module"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique module identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "Module values to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/ModuleUpdateDTO"
+      responses:
+        "200":
+          description: "Success, module updated"
+          schema:
+            $ref: "#/definitions/ModuleGetDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to edit the module"
+        "404":
+          description: "Module with given identifier not found"
+      security:
+        - login_secret: []
+    delete:
+      tags:
+        - "modules"
+      summary: "Delete existing module"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique module identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, module deleted"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to delete the module"
+        "404":
+          description: "Module with given identifier not found"
+      security:
+        - login_secret: []
+  /modules/{id}/file:
+    get:
+      tags:
+        - "modules"
+      summary: "Get module file"
+      produces:
+        - "application/x-tar"
+      parameters:
+        - in: "path"
+          description: "Unique module identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, module file"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to view the module"
+        "404":
+          description: "Module with given identifier not found / doesn't have a file"
+      security:
+        - login_secret: [ ]
+    post:
+      tags:
+        - "modules"
+      summary: "Upload module file"
+      consumes:
+        - "multipart/form-data"
+      parameters:
+        - in: "path"
+          description: "Unique module identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "formData"
+          name: "file"
+          type: "file"
+          format: "application/x-tar"
+          description: "Module file to be uploaded"
+          required: true
+      responses:
+        "200":
+          description: "Success, module file uploaded"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to upload the module file"
+        "404":
+          description: "Module with given identifier not found"
+        "415":
+          description: "Invalid media"
+      security:
+        - login_secret: [ ]
+
+  # Images
+  /images/{image}:
+    get:
+      tags:
+        - "images"
+      summary: "Get image"
+      produces:
+        - "image/*"
+      parameters:
+        - in: "path"
+          description: "Unique image name"
+          name: "image"
+          type: "string"
+          required: true
+      responses:
+        "200":
+          description: "Success, image file"
+        "404":
+          description: "Image not found"
+  /images:
+    post:
+      tags:
+        - "images"
+      summary: "Upload image"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "text/plain"
+      parameters:
+        - in: "formData"
+          name: "image"
+          type: "file"
+          format: "image/*"
+          description: "Image to be uploaded"
+          required: true
+      responses:
+        "200":
+          description: "Success, image file uploaded"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to upload the image"
+        "404":
+          description: "Image with given identifier not found"
+      security:
+        - login_secret: [ ]
+
+  # Student modules
+  /lessons/{id}/modules/{moduleId}/data/me:
+    put:
+      tags:
+        - "student-modules"
+      summary: "Replaces existing StudentModule"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of lesson"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "moduleId"
+          description: "Unique identifier of module"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "StudentModule to be created / values to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/StudentModuleEditDTO"
+      responses:
+        "200":
+          description: "Success, StudentModule created / edited"
+          schema:
+            $ref: "#/definitions/StudentModuleReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Lesson or module with given identifier not found"
+      security:
+        - login_secret: [ ]
+    delete:
+      tags:
+        - "student-modules"
+      summary: "Deletes student module data"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of lesson"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "moduleId"
+          description: "Unique identifier of module"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, student module data deleted"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to delete student module data"
+        "404":
+          description: "Lesson or module or student module not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/modules/{moduleId}/file/me:
+    post:
+      tags:
+        - "student-modules"
+      summary: "Upload student module file"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of lesson"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "moduleId"
+          description: "Unique identifier of module"
+          type: "integer"
+          required: true
+        - in: "formData"
+          name: "file"
+          type: "file"
+          format: "image/*"
+          description: "File to be uploaded"
+          required: true
+      responses:
+        "200":
+          description: "Success, student module file"
+          schema:
+            $ref: "#/definitions/StudentModuleReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Lesson or module with given identifier not found"
+      security:
+        - login_secret: [ ]
+    get:
+      tags:
+        - "student-modules"
+      summary: "Get own student module file"
+      produces:
+        - "application/x-tar"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of lesson"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "moduleId"
+          description: "Unique identifier of module"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, own student module file"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Lesson or module with given identifier not found or file does not exist"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/modules/{moduleId}/file/users/{userId}:
+    get:
+      tags:
+        - "student-modules"
+      summary: "Get given student module file"
+      produces:
+        - "application/x-tar"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of lesson"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "moduleId"
+          description: "Unique identifier of module"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "userId"
+          description: "Unique identifier of user"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, student's module file"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Lesson or module or user with given identifier not found or file does not exist"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/modules/{moduleId}/requests/me:
+    put:
+      tags:
+        - "student-modules"
+      summary: "Replaces existing StudentModuleRequest"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of lesson"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "moduleId"
+          description: "Unique identifier of module"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "StudentModuleRequest to be created / values to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/StudentModuleRequestEditDTO"
+      responses:
+        "204":
+          description: "Success, StudentModuleRequest created / edited"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Lesson or module with given identifier not found"
+      security:
+        - login_secret: [ ]
+    delete:
+      tags:
+        - "student-modules"
+      summary: "Deletes student module request"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of lesson"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "moduleId"
+          description: "Unique identifier of module"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, student module request deleted"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Lesson or module or student module request not found"
+      security:
+        - login_secret: [ ]
+  /lessons/{id}/modules/{moduleId}/requests/users/{userId}:
+    put:
+      tags:
+        - "student-modules"
+      summary: "Replaces existing StudentModuleRequest (teacher side)"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Unique identifier of lesson"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "moduleId"
+          description: "Unique identifier of module"
+          type: "integer"
+          required: true
+        - in: "path"
+          name: "userId"
+          description: "Unique identifier of student"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "StudentModuleRequest to be created / values to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/StudentModuleRequestTeacherDTO"
+      responses:
+        "200":
+          description: "Success, StudentModuleRequest created / edited"
+          schema:
+            $ref: "#/definitions/StudentModuleReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "404":
+          description: "Lesson or module with given identifier not found"
+      security:
+        - login_secret: [ ]
+
+  # Notifications
+  /notifications:
+    get:
+      tags:
+        - "notifications"
+      summary: "Get unread notifications"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Success, notification list"
+          schema:
+            $ref: "#/definitions/NotificationDTOArray"
+        "401":
+          description: "Unauthorized user"
+      security:
+        - login_secret: [ ]
+    delete:
+      tags:
+        - "notifications"
+      summary: "Mark all notifications as read"
+      responses:
+        "204":
+          description: "Success, notifications marked"
+        "401":
+          description: "Unauthorized user"
+      security:
+        - login_secret: [ ]
+  /notifications/all:
+    get:
+      tags:
+        - "notifications"
+      summary: "Get all notifications"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Success, notification list"
+          schema:
+            $ref: "#/definitions/NotificationDTOArray"
+        "401":
+          description: "Unauthorized user"
+      security:
+        - login_secret: [ ]
+
+  # Code module
+  /code:
+    post:
+      tags:
+        - "code-module"
+      summary: "Create new code module"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Code module to be created"
+          required: true
+          schema:
+            $ref: "#/definitions/CodeModuleCreateDTO"
+      responses:
+        "201":
+          description: "Success, code module created"
+          schema:
+            $ref: "#/definitions/CodeModuleReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to create new code module"
+        "404":
+          description: "Matching module not found"
+      security:
+        - login_secret: [ ]
+  /code/{id}:
+    get:
+      tags:
+        - "code-module"
+      summary: "Get code module detail"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique module identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "200":
+          description: "Success, code module detail"
+          schema:
+            $ref: "#/definitions/CodeModuleReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to view the module"
+        "404":
+          description: "Code module with given module identifier not found"
+      security:
+        - login_secret: [ ]
+    patch:
+      tags:
+        - "code-module"
+      summary: "Edit existing code module"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique module identifier"
+          name: "id"
+          type: "integer"
+          required: true
+        - in: "body"
+          name: "body"
+          description: "Code module values to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/CodeModuleUpdateDTO"
+      responses:
+        "200":
+          description: "Success, code module updated"
+          schema:
+            $ref: "#/definitions/CodeModuleReadDTO"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to edit the code module"
+        "404":
+          description: "Code module with given module identifier not found"
+      security:
+        - login_secret: [ ]
+    delete:
+      tags:
+        - "code-module"
+      summary: "Delete existing code module"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique module identifier"
+          name: "id"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, code module deleted"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to delete the code module"
+        "404":
+          description: "Code module with given module identifier not found"
+      security:
+        - login_secret: [ ]
+  /code/tests/{testId}:
+    delete:
+      tags:
+        - "code-module"
+      summary: "Delete existing code module test"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique code module test identifier"
+          name: "testId"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, code module test deleted"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to delete the code module test"
+        "404":
+          description: "Code module test with given identifier not found"
+      security:
+        - login_secret: [ ]
+  /code/files/{fileId}:
+    delete:
+      tags:
+        - "code-module"
+      summary: "Delete existing code module file"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          description: "Unique code module file identifier"
+          name: "fileId"
+          type: "integer"
+          required: true
+      responses:
+        "204":
+          description: "Success, code module file deleted"
+        "401":
+          description: "Unauthorized user"
+        "403":
+          description: "Insufficient rights to delete the code module file"
+        "404":
+          description: "Code module file with given identifier not found"
+      security:
+        - login_secret: [ ]
+
+securityDefinitions:
+  login_secret:
+    type: "apiKey"
+    name: "LoginSecret"
+    in: "header"
+definitions:
+  # Auth
+  AuthDTO:
+    description: "FIT OAuth code"
+    type: "object"
+    properties:
+      code:
+        type: "string"
+        description: "Code received from FIT OAuth"
+        example: "a22f44"
+  AuthSettingsDTO:
+    description: "FIT OAuth settings"
+    type: "object"
+    properties:
+      clientId:
+        type: "string"
+        description: "FIT OAuth client id"
+        example: "5ea4ace2-c22b-551a-69a0-fee122fac274"
+      redirectUri:
+        type: "string"
+        description: "FIT OAuth redirect URI"
+        example: "http://localhost:8080/login"
+  UserLoginDTO:
+    description: "User login data"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique student identifier"
+        example: 1
+      loginSecret:
+        type: "string"
+        description: "Secret used for logging user in"
+        example: "1234-5678-9012-3456"
+      username:
+        type: "string"
+        description: "KOS username"
+        example: "wrzecond"
+      name:
+        type: "string"
+        description: "User name"
+        example: "Ondřej Wrzecionko"
+      isTeacher:
+        type: "array"
+        items:
+          type: "integer"
+        description: "IDs of courses, in which user is teacher"
+        example: [1, 4]
+
+  # Course
+  CourseFindDTOArray:
+    type: "array"
+    items:
+      $ref: "#/definitions/CourseFindDTO"
+  CourseFindDTO:
+    description: "Course list DTO"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique course identifier"
+        example: 1
+      name:
+        type: "string"
+        description: "Course name"
+        example: "Programming and Algorithms 1 (3 + 4)"
+      subject:
+        $ref: "#/definitions/SubjectFindDTO"
+      semester:
+        $ref: "#/definitions/SemesterFindDTO"
+      lessonCompleted:
+        type: "integer"
+        description: "Number of completed lessons in course"
+        example: 2
+      lessonCount:
+        type: "integer"
+        description: "Number of lessons in course"
+        example: 5
+      role:
+        $ref: "#/definitions/RoleEnum"
+  CourseGetDTO:
+    description: "Course get DTO"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique course identifier"
+        example: 1
+      name:
+        type: "string"
+        description: "Course name"
+        example: "Programming and Algorithms 1 (3 + 4)"
+      subject:
+        $ref: "#/definitions/SubjectFindDTO"
+      semester:
+        $ref: "#/definitions/SemesterFindDTO"
+      role:
+        $ref: "#/definitions/RoleEnum"
+      secret:
+        type: "string"
+        description: "Course join secret (only shown to teachers)"
+        example: null
+      weeks:
+        $ref: "#/definitions/WeekGetDTOArray"
+  CourseSecretDTO:
+    description: "Course secret"
+    type: "object"
+    properties:
+      secret:
+        type: "string"
+        description: "Secret for joining course"
+        example: "730NE"
+
+  SubjectFindDTO:
+    description: "Subject DTO"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique subject identifier"
+        example: 1
+      name:
+        type: "string"
+        description: "Subject name"
+        example: "Programming and Algorithms 1"
+      code:
+        type: "string"
+        description: "Subject code"
+        example: "BI-PA1.21"
+  SemesterFindDTO:
+    description: "Semester DTO"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique semester identifier"
+        example: 1
+      code:
+        type: "string"
+        description: "Semester code"
+        example: "B232"
+      from:
+        type: "string"
+        description: "Semester start date"
+        format: "date-time"
+      until:
+        type: "string"
+        description: "Semester end date"
+        format: "date-time"
+
+  # Week
+  WeekFindDTO:
+    description: "Week"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique week identifier"
+        example: 1
+      name:
+        type: "string"
+        description: "Week name"
+        example: "1st week"
+      from:
+        type: "string"
+        format: "date-time"
+        description: "Week start date"
+        example: "2024-02-01T00:00:00.000+00:00"
+      until:
+        type: "string"
+        format: "date-time"
+        description: "Week end date"
+        example: "2025-02-01T00:00:00.000+00:00"
+      course:
+        $ref: "#/definitions/CourseFindDTO"
+  WeekGetDTOArray:
+    type: "array"
+    items:
+      $ref: "#/definitions/WeekGetDTO"
+  WeekGetDTO:
+    description: "Week"
+    allOf:
+      - $ref: "#/definitions/WeekFindDTO"
+    properties:
+      lessons:
+        $ref: "#/definitions/LessonFindDTOArray"
+  WeekDetailDTO:
+    description: "Week"
+    allOf:
+      - $ref: "#/definitions/WeekFindDTO"
+    properties:
+      lessons:
+        $ref: "#/definitions/LessonGetDTOArray"
+  WeekUpdateDTO:
+    description: "Week to be updated"
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        description: "Week name"
+        example: "First week"
+      from:
+        type: "string"
+        format: "date-time"
+        description: "Week start date"
+        example: "2024-01-01T00:00:00.000+00:00"
+      until:
+        type: "string"
+        format: "date-time"
+        description: "Week end date"
+        example: "2025-01-01T00:00:00.000+00:00"
+  WeekCreateDTO:
+    description: "Week to be created"
+    allOf:
+      - $ref: "#/definitions/WeekUpdateDTO"
+    properties:
+      courseId:
+        type: "integer"
+        description: "Unique identifier of course to put the new week into"
+        example: 2
+  WeekLessonOrderDTO:
+    type: "object"
+    description: "List of lessons to be updated"
+    properties:
+      lessonIds:
+        description: "Array of lessons to be updated (order matters)"
+        type: "array"
+        items:
+          type: "integer"
+        example: [4, 2, 1, 3]
+  # Course user
+  CourseUserList:
+    description: "Course user list (with course)"
+    type: "object"
+    properties:
+      course:
+        $ref: "#/definitions/CourseFindDTO"
+      users:
+        $ref: "#/definitions/CourseUserReadDTOArray"
+  CourseUserDetail:
+    description: "Course user detail (with course)"
+    type: "object"
+    properties:
+      course:
+        $ref: "#/definitions/CourseGetDTO"
+      user:
+        $ref: "#/definitions/UserFindDTO"
+  CourseUserReadDTOArray:
+    description: "Array of course users"
+    type: "array"
+    items:
+      $ref: "#/definitions/CourseUserReadDTO"
+  CourseUserReadDTO:
+    description: "Course user"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique user identifier"
+        example: 1
+      username:
+        type: "string"
+        description: "User's username"
+        example: "wrzecond"
+      name:
+        type: "string"
+        description: "User's name"
+        example: "Ondřej Wrzecionko"
+      role:
+        $ref: "#/definitions/RoleEnum"
+      progress:
+        type: "integer"
+        description: "User progress in course (in percent)"
+        example: 24
+  CourseUserEditDTO:
+    description: "Course user to create"
+    type: "object"
+    properties:
+      username:
+        type: "string"
+        description: "KOS username"
+        example: "wrzecond"
+      name:
+        type: "string"
+        description: "New user name"
+        example: "Ondřej Wrzecionko"
+      role:
+        $ref: "#/definitions/RoleEnum"
+
+  # Lessons
+  LessonDTO:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique lesson identifier"
+        example: 1
+      name:
+        type: "string"
+        description: "Lesson name"
+        example: "Compilation"
+      hidden:
+        type: "boolean"
+        description: "Is lesson hidden from students?"
+        example: false
+      type:
+        $ref: "#/definitions/LessonType"
+      lockCode:
+        type: "string"
+        description: "Code for unlocking modules in lesson (teacher only)"
+        example: null
+      timeLimit:
+        type: "string"
+        format: "date-time"
+        description: "Lesson end date"
+        example: "2025-02-01T00:00:00.000+00:00"
+  LessonFindDTOArray:
+    type: "array"
+    items:
+      $ref: "#/definitions/LessonFindDTO"
+  LessonFindDTO:
+    description: "Lesson"
+    type: "object"
+    allOf:
+      - $ref: "#/definitions/LessonDTO"
+    properties:
+      order:
+        type: "integer"
+        description: "Lesson order in week"
+        example: 1
+      progress:
+        type: "integer"
+        description: "Overall progress in lesson"
+        example: 50
+  LessonGetDTOArray:
+    type: "array"
+    items:
+      $ref: "#/definitions/LessonGetDTO"
+  LessonGetDTO:
+    description: "Lesson"
+    type: "object"
+    allOf:
+      - $ref: "#/definitions/LessonDTO"
+    properties:
+      week:
+        $ref: "#/definitions/WeekFindDTO"
+      timeStart:
+        type: "string"
+        format: "date-time"
+        description: "Lesson start date"
+        example: "2024-02-01T00:00:00.000+00:00"
+      description:
+        type: "string"
+        description: "Lesson description (introduction text)"
+        example: "In this lesson, we will cover the basics of how to compile..."
+      modules:
+        $ref: "#/definitions/ModuleFindDTOArray"
+  LessonType:
+    type: "string"
+    enum: [ "TUTORIAL", "TUTORIAL_PREPARATION", "INDIVIDUAL_TASK", "SUPPLEMENTARY", "FREQUENT_MISTAKES", "INFORMATION" ]
+    description: "Lesson type"
+    example: "TUTORIAL"
+  LessonUpdateDTO:
+    type: "object"
+    description: "DTO used for updating lesson"
+    properties:
+      name:
+        type: "string"
+        description: "Newly created lesson name"
+        example: "Another lesson"
+      hidden:
+        type: "boolean"
+        description: "Should lesson be hidden from students?"
+        example: false
+      order:
+        type: "integer"
+        description: "Lesson order in week"
+        example: 2
+      type:
+        $ref: "#/definitions/LessonType"
+      lockCode:
+        type: "string"
+        description: "Code used for unlocking lesson modules"
+        example: "secretcode"
+      timeStart:
+        type: "string"
+        format: "date-time"
+        description: "Lesson start date"
+        example: "2024-02-01T00:00:00.000+00:00"
+      timeLimit:
+        type: "string"
+        format: "date-time"
+        description: "Time limit for user to solve lesson in time"
+        example: "2025-02-01T00:00:00.000+00:00"
+      description:
+        type: "string"
+        description: "Lesson description (with assignment, conditions...)"
+        example: "In this lesson, we will cover the basics of how to compile..."
+  LessonCreateDTO:
+    allOf:
+      - $ref: "#/definitions/LessonUpdateDTO"
+    properties:
+      weekId:
+        type: "integer"
+        description: "Identifier of week for lesson to be added to"
+        example: 1
+  LessonUnlockDTO:
+    type: "object"
+    description: "DTO used for unlocking lesson"
+    properties:
+      code:
+        type: "string"
+        description: "Code to set (null for unsetting)"
+        example: "secretcode"
+
+  # Lesson user
+  LessonUserListDTO:
+    type: "object"
+    description: "DTO used for lesson user list"
+    properties:
+      id:
+        type: "integer"
+        description: "Lesson id"
+        example: 1
+      course:
+        $ref: "#/definitions/CourseFindDTO"
+      name:
+        type: "string"
+        description: "Lesson name"
+        example: "Compilation"
+      modules:
+        type: "array"
+        description: "Modules list"
+        items:
+          $ref: "#/definitions/ModuleFindDTO"
+      users:
+        type: "array"
+        description: "Users with progress list"
+        items:
+          $ref: "#/definitions/ModuleUserListDTO"
+  LessonUserReadDTO:
+    type: "object"
+    description: "Lesson detail from user's point of view"
+    properties:
+      lesson:
+        $ref: "#/definitions/LessonGetDTO"
+      user:
+        $ref: "#/definitions/UserFindDTO"
+  LessonModuleUserListDTO:
+    type: "object"
+    description: "LessonModule users list (1 lesson, 1 module, all solutions)"
+    properties:
+      lesson:
+        $ref: "#/definitions/LessonGetDTO"
+      module:
+        $ref: "#/definitions/ModuleFindDTO"
+      users:
+        type: "array"
+        description: "Users with progress in module list"
+        items:
+          $ref: "#/definitions/ModuleUserSingleListDTO"
+
+  ModuleUserListDTO:
+    type: "object"
+    description: "User with list of module progress"
+    properties:
+      id:
+        type: "integer"
+        description: "User id"
+        example: 1
+      username:
+        type: "string"
+        description: "Username"
+        example: "wrzecond"
+      name:
+        type: "string"
+        description: "User's name"
+        example: "Ondřej Wrzecionko"
+      modules:
+        type: "array"
+        description: "Array of user – module progress"
+        items:
+          $ref: "#/definitions/ModuleUserDTO"
+  ModuleUserSingleListDTO:
+    type: "object"
+    description: "User with module progress"
+    properties:
+      id:
+        type: "integer"
+        description: "User id"
+        example: 1
+      username:
+        type: "string"
+        description: "Username"
+        example: "wrzecond"
+      name:
+        type: "string"
+        description: "User's name"
+        example: "Ondřej Wrzecionko"
+      module:
+        $ref: "#/definitions/ModuleUserDTO"
+  ModuleUserDTO:
+    type: "object"
+    description: "User's progress in one module"
+    properties:
+      id:
+        type: "integer"
+        description: "Module identifier"
+        example: 42
+      requestType:
+        $ref: "#/definitions/StudentModuleRequestType"
+      allowedShow:
+        type: "boolean"
+        description: "Has student allowed anonymized publication?"
+        example: true
+      progress:
+        type: "integer"
+        description: "User progress in module (in percent, 0 – 100)"
+        example: 22
+      completedEarly:
+        type: "boolean"
+        description: "Has student completed module before lesson end?"
+        example: false
+      completed:
+        type: "string"
+        format: "date-time"
+        description: "Time when user has completed the module (null if uncompleted)"
+        example: "2024-02-19T12:11:05.000+00:00"
+
+  # Lesson module
+  LessonModuleReadDTO:
+    type: "object"
+    description: "LessonModule description"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique identifier of LessonModule"
+        example: 44
+      name:
+        type: "string"
+        description: "Name of module"
+        example: "Compilation – task"
+      type:
+        type: "string"
+        enum: [ "TEXT", "QUIZ", "CODE", "ASSIGNMENT" ]
+        description: "Type of module"
+        example: "ASSIGNMENT"
+      order:
+        type: "integer"
+        description: "Module order in lesson"
+        example: 1
+  LessonModuleEditDTO:
+    type: "object"
+    description: "Description of module to edit / create"
+    properties:
+      order:
+        type: "integer"
+        description: "Module order in lesson"
+        example: 1
+      depends:
+        type: "integer"
+        description: "Identifier of module on which the module should depend (null if none)"
+        example: 2
+  LessonModuleCopyDTO:
+    type: "object"
+    description: "Description of module to copy"
+    properties:
+      copiedId:
+        type: "integer"
+        description: "Unique identifier of module to copy"
+        example: 12
+      order:
+        type: "integer"
+        description: "Module order in new lesson"
+        example: 1
+
+  # Module
+  ModuleFindDTOArray:
+    type: "array"
+    items:
+      $ref: "#/definitions/ModuleFindDTO"
+  ModuleFindDTO:
+    allOf:
+      - $ref: "#/definitions/ModuleGetDTO"
+    properties:
+      locked:
+        type: "boolean"
+        description: "Flag determining, whether module is really locked"
+        example: false
+      file:
+        type: "string"
+        description: "If module has file (test data), it will be the name of the file"
+        example: "d32kvcz21y"
+      author:
+        type: "string"
+        description: "Module author"
+        example: "wrzecond"
+      editors:
+        type: "array"
+        description: "Module editors (usernames)"
+        items:
+          type: "string"
+        example: ["matouj10", "pasekmat"]
+      allowedShow:
+        type: "boolean"
+        description: "Flag determining whether student allowed anonymized publishing of the module"
+        example: false
+      completedEarly:
+        type: "boolean"
+        description: "Flag determining whether student completed the module before lesson end"
+        example: true
+      completed:
+        type: "string"
+        format: "date-time"
+        description: "Datetime when student completed the module (null if not completed)"
+        example: "2024-03-01T14:16:11.000+00:00"
+      requestType:
+        type: "string"
+        enum: ["HELP", "EVALUATE"]
+        description: "Type of request that is currently active"
+        example: "EVALUATE"
+      teacherComment:
+        type: "string"
+        description: "Teacher's comment on the last student request"
+        example: "It looks good, but try better."
+      requestText:
+        type: "string"
+        description: "Student's comment associated with current active request"
+        example: "I improved it, please evaluate it."
+      order:
+        type: "integer"
+        description: "Module order in lesson"
+        example: 2
+      progress:
+        type: "integer"
+        description: "Student progress in module (in percent)"
+        example: 100
+      hasStudentFile:
+        type: "boolean"
+        description: "Flag indicating whether module has a solution (file) uploaded by student"
+        example: true
+  ModuleGetDTO:
+    description: "Module"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique module identifier"
+        example: 1
+      name:
+        type: "string"
+        description: "Module name"
+        example: "Assignment: Compile on your own computer"
+      depends:
+        type: "integer"
+        description: "ID of module this module is depending on"
+        example: 2
+      author:
+        $ref: "#/definitions/CourseUserReadDTO"
+      editors:
+        type: "array"
+        description: "IDs of users who are editors of the module"
+        items:
+          type: "integer"
+      type:
+        type: "string"
+        enum: ["TEXT", "QUIZ", "CODE", "ASSIGNMENT"]
+        description: "Type of module"
+        example: "CODE"
+      lastModificationTime:
+        type: "string"
+        format: "date-time"
+        description: "Last time, when module was changed"
+        example: "2024-02-13T11:03:20.000+00:00"
+      difficulty:
+        type: "string"
+        enum: ["BEGINNER", "EASY", "MEDIUM", "DIFFICULT", "EXTREME"]
+        description: "Module difficulty rating"
+        example: "EASY"
+      assignment:
+        type: "string"
+        description: "Markdown assignment of module"
+        example: "In this task, you have to compile the following code on your computer and upload it."
+      minPercent:
+        type: "integer"
+        description: "Minimum percent needed for completing the module"
+        example: 100
+      lockable:
+        type: "boolean"
+        description: "Flag determining, whether module can be locked."
+        example: false
+      timeLimit:
+        type: "boolean"
+        description: "Flag determining, whether module should be solved 'early'."
+        example: true
+      manualEval:
+        type: "boolean"
+        description: "Flag determining, whether module should be evaluated manually (by teacher)."
+        example: true
+      hidden:
+        type: "boolean"
+        description: "Flag determining, whether module is hidden from students."
+        example: false
+  ModuleEditDTO:
+    description: "Module"
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        description: "Module name"
+        example: "Assignment: Compile on your own computer"
+      editors:
+        type: "array"
+        description: "IDs of users who are editors of the module"
+        items:
+          type: "integer"
+          example: 1
+      difficulty:
+        type: "string"
+        enum: [ "BEGINNER", "EASY", "MEDIUM", "DIFFICULT", "EXTREME" ]
+        description: "Module difficulty rating"
+        example: "EASY"
+      assignment:
+        type: "string"
+        description: "Markdown assignment of module"
+        example: "In this task, you have to compile the following code on your computer and upload it."
+      minPercent:
+        type: "integer"
+        description: "Minimum percent needed for completing the module"
+        example: 100
+      lockable:
+        type: "boolean"
+        description: "Flag determining, whether module can be locked."
+        example: false
+      timeLimit:
+        type: "boolean"
+        description: "Flag determining, whether module should be solved 'early'."
+        example: true
+      manualEval:
+        type: "boolean"
+        description: "Flag determining, whether module should be evaluated manually (by teacher)."
+        example: true
+      hidden:
+        type: "boolean"
+        description: "Flag determining, whether module is hidden from students."
+        example: false
+  ModuleCreateDTO:
+    description: "Module being created"
+    allOf:
+      - $ref: "#/definitions/ModuleEditDTO"
+    properties:
+      type:
+        type: "string"
+        enum: [ "TEXT", "QUIZ", "CODE", "ASSIGNMENT" ]
+        description: "Type of module"
+        example: "CODE"
+  ModuleUpdateDTO:
+    description: "Module update DTO"
+    allOf:
+      - $ref: "#/definitions/ModuleEditDTO"
+    properties:
+      lastModificationTime:
+        type: "string"
+        format: "date-time"
+        description: "Last time, when module was changed"
+        example: "2024-02-13T11:03:20.000+00:00"
+
+  # Student module
+  StudentModuleRequestType:
+    type: "string"
+    description: "Student request type"
+    enum: ["HELP", "COMMENT", "EVALUATE"]
+    example: "HELP"
+  StudentModuleEditDTO:
+    type: "object"
+    description: "Student module settings"
+    properties:
+      allowedShow:
+        type: "boolean"
+        description: "Anonymized publication of solution"
+        example: false
+      percent:
+        type: "integer"
+        description: "Percent student has reached in the module"
+        example: 75
+  StudentModuleReadDTO:
+    type: "object"
+    description: "Student module data transfer object"
+    properties:
+      percent:
+        type: "integer"
+        description: "Percent student has reached in the module"
+        example: 80
+      completedEarly:
+        type: "boolean"
+        description: "Flag indicating whether student completed the module before end of lesson"
+        example: false
+      completed:
+        type: "string"
+        format: "date-time"
+        description: "Time when user completed the module (or null if uncompleted)"
+        example: null
+  StudentModuleRequestEditDTO:
+    type: "object"
+    description: "Student module request edit object"
+    properties:
+      requestText:
+        type: "string"
+        description: "Request text"
+        example: "Please, help me"
+      requestType:
+        $ref: "#/definitions/StudentModuleRequestType"
+  StudentModuleRequestTeacherDTO:
+    type: "object"
+    description: "Student module request teacher DTO"
+    properties:
+      responseText:
+        type: "string"
+        description: "Response to the request or comment"
+        example: "You should fix line 20 on your code"
+      evaluation:
+        type: "boolean"
+        description: "Should module get evaluated? (manualEval modules)"
+        example: false
+      percent:
+        type: "integer"
+        description: "If module should be evaluated, sets the percent to given value (manualEval modules)"
+        example: null
+
+  # Notification
+  NotificationDTOArray:
+    type: "array"
+    items:
+      $ref: "#/definitions/NotificationDTO"
+  NotificationDTO:
+    type: "object"
+    description: "Notification information"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique notification identifier"
+        example: 1
+      lesson:
+        description: "Information about lesson"
+        $ref: "#/definitions/NotificationEntityDTO"
+      module:
+        description: "Information about module"
+        $ref: "#/definitions/NotificationEntityDTO"
+      user:
+        description: "Information about user"
+        $ref: "#/definitions/NotificationEntityDTO"
+      isStudent:
+        type: "boolean"
+        description: "Is notification student/teacher side?"
+        example: true
+      type:
+        type: "string"
+        description: "Type of notification"
+        enum: ["HELP", "COMMENT", "EVALUATE"]
+        example: "EVALUATE"
+      satisfied:
+        type: "boolean"
+        description: "Was notification satisfied?"
+        example: true
+      datetime:
+        type: "string"
+        format: "date-time"
+        description: "When was notification received?"
+        example: "2023-02-12T10:00:00.000+00:00"
+  NotificationEntityDTO:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Entity identifier"
+        example: 1
+      name:
+        type: "string"
+        description: "Entity name"
+        example: "Name"
+
+  # Role
+  RoleEnum:
+    type: "string"
+    description: "User role in course"
+    enum: ["TEACHER", "STUDENT"]
+    example: "STUDENT"
+
+  # User
+  UserFindDTO:
+    description: "User data"
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique student identifier"
+        example: 1
+      username:
+        type: "string"
+        description: "KOS username"
+        example: "wrzecond"
+      name:
+        type: "string"
+        description: "User name"
+        example: "Ondřej Wrzecionko"
+
+  # Code module
+  CodeModuleDTO:
+    type: "object"
+    properties:
+      codeType:
+        type: "string"
+        description: "Type of code module"
+        enum: ["SHOWCASE", "TEST_IO", "TEST_ASSERT", "WRITE_ASSERT"]
+        example: "TEST_ASSERT"
+      interactionType:
+        type: "string"
+        description: "Possible types of interaction with the module"
+        enum: ["UPDOWN_ONLY", "EDITOR"]
+        example: "EDITOR"
+      codeHidden:
+        type: "string"
+        description: "Code used to test student code"
+        example: "#include <stdio.h> int main () { return 0; }"
+      referencePublic:
+        type: "boolean"
+        description: "Parameter defining whether reference solution should be downloadable"
+        example: false
+      fileLimit:
+        type: "integer"
+        description: "Maximum file size for file uploading"
+        example: 10240
+      libraryType:
+        type: "string"
+        description: "Type of library linked to resulting code"
+        enum: ["NO_LIB", "LIB_C", "LIB_CPP"]
+        example: "LIB_C"
+      envelopeType:
+        type: "string"
+        enum: ["ENV_C", "ENV_C_IO", "ENV_CPP", "ENV_CPP_STL", "ENV_CUSTOM"]
+        description: "Envelope into which student/ref codes are inserted"
+        example: "ENV_C_IO"
+      customEnvelope:
+        type: "string"
+        description: "If custom envelope is used, its content is here"
+        example: null
+  CodeModuleReadDTO:
+    description: "Code module information DTO"
+    allOf:
+      - $ref: "#/definitions/CodeModuleDTO"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique code module identifier"
+        example: 1
+      tests:
+        type: "array"
+        items:
+          $ref: "#/definitions/CodeModuleTestDTO"
+      files:
+        type: "array"
+        items:
+          $ref: "#/definitions/CodeModuleFileDTO"
+  CodeModuleUpdateDTO:
+    description: "Code module DTO for updating"
+    allOf:
+      - $ref: "#/definitions/CodeModuleDTO"
+    properties:
+      tests:
+        type: "array"
+        items:
+          $ref: "#/definitions/CodeModuleTestDTO"
+      files:
+        type: "array"
+        items:
+          $ref: "#/definitions/CodeModuleFileDTO"
+  CodeModuleCreateDTO:
+    description: "Code module DTO for creating"
+    allOf:
+      - $ref: "#/definitions/CodeModuleUpdateDTO"
+    properties:
+      moduleId:
+        type: "integer"
+        description: "Unique module identifier"
+        example: 1
+  CodeModuleTestDTO:
+    type: "object"
+    description: "Data transfer object for code module test detail / creating / updating"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique identifier of test (unused for editing)"
+        example: 1
+      realId:
+        type: "integer"
+        description: "Same as id, used to determine whether to update (!= null) or create (= null) in edit requests"
+        example: 1
+      name:
+        type: "string"
+        description: "Test name"
+        example: "Basic tests"
+      parameter:
+        type: "integer"
+        description: "Parameter passed to tester"
+        example: 101
+      description:
+        type: "string"
+        description: "Test description"
+        example: "Tests basic values"
+      timeLimit:
+        type: "integer"
+        description: "Number of seconds after which code execution should be stopped (null = ignore)"
+        example: 30
+      checkMemory:
+        type: "boolean"
+        description: "Flag indicating whether freeing memory should be controlled"
+        example: true
+      shouldFail:
+        type: "boolean"
+        description: "Should the test fail (only write assert tests)"
+        example: false
+      hidden:
+        type: "boolean"
+        description: "Are results of the test hidden?"
+        example: true
+  CodeModuleFileDTO:
+    type: "object"
+    description: "Data transfer object for code module file detail / creating / updating"
+    properties:
+      id:
+        type: "integer"
+        description: "Unique identifier of file (unused for editing)"
+        example: 1
+      realId:
+        type: "integer"
+        description: "Same as id, used to determine whether to update (!= null) or create (= null) in edit requests"
+        example: 1
+      name:
+        type: "string"
+        description: "File name"
+        example: "student.cpp"
+      codeLimit:
+        type: "integer"
+        description: "Maximum code content length (in characters)"
+        example: 1024
+      content:
+        type: "string"
+        description: "File default content"
+        example: "#include <stdio.h> int main () { return 0; }"
+      reference:
+        type: "string"
+        description: "Reference solution"
+        example: "#include <stdio.h> int main () { return 0; }"
+      headerFile:
+        type: "boolean"
+        description: "Flag indicating whether file should be compiled, or just included on filesystem"
+        example: true

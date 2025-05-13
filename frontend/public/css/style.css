@@ -1,0 +1,42 @@
+a {
+    color: rgb(var(--v-theme-anchor))
+}
+
+/* Helper classes for positioning on fixed screen height */
+.v-window__container {
+    display: flex;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.max-height-no-tab, .max-height-tab-third, .max-height-tab, .max-height-tab-code, .cm-editor {
+    --layout-vertical-spacing: calc(100vh - var(--v-layout-top) - var(--v-layout-bottom) - 104px);
+    --layout-tab-spacing: calc(var(--layout-vertical-spacing) - 130px);
+    --layout-cm-spacing: calc(var(--layout-vertical-spacing) - 90px);
+}
+
+@media only screen and (min-width: 1280px) {
+    .max-height-tab {
+        height: var(--layout-tab-spacing) !important;
+    }
+
+    .max-height-tab-third {
+        max-height: calc(var(--layout-tab-spacing) / 2.3) !important;
+    }
+
+    .max-height-no-tab {
+        height: calc(var(--layout-vertical-spacing) - 30px) !important;
+    }
+
+    .max-height-tab-code {
+        height: calc(var(--layout-tab-spacing) - 30px) !important;
+    }
+
+    .cm-editor {
+        height: var(--layout-cm-spacing) !important;
+    }
+
+    .full-cm-editor .cm-editor {
+        height: calc(var(--layout-vertical-spacing) - 32px) !important;
+    }
+}

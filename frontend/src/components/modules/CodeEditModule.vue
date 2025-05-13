@@ -1,0 +1,201 @@
+<script setup>
+import { ref, onMounted, inject, provide, watch } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
+import { useLocale } from 'vuetify'
+import codeApi from '@/service/codeApi'
+import CodeEditor from '@/components/custom/CodeEditor.vue'
+import {
+  MODULE_EDIT_ITEMS, MODULE_EDIT_CODE_INFO, MODULE_EDIT_CODE_STUD,
+  MODULE_EDIT_CODE_TEAC, MODULE_EDIT_CODE_ENV,
+  MODULE_EDIT_CODE_TEST, MODULE_FILE_CODE, DEFAULT_CODE_CONTENT
+} from "@/plugins/constants";
+import LoadingScreen from "@/components/custom/LoadingScreen.vue";
+import CodeEditModulePartInformation from '@/components/modules/code/edit/CodeEditModulePartInformation.vue'
+import CodeEditModulePartTest from '@/components/modules/code/edit/CodeEditModulePartTest.vue'
+import CodeEditModulePartFile from '@/components/modules/code/edit/CodeEditModulePartFile.vue'
+import CodeEditModulePartEnvelope from "@/components/modules/code/edit/CodeEditModulePartEnvelope.vue";
+
+const appState = inject('appState')
+const { t } = useLocale()
+const props = defineProps(['moduleId', 'readOnly'])
+
+const reloadTestNames = () => {
+  codeData.value.tests[codeData.value.tests.length - 1].name = t('$vuetify.code_module.new_test')
+  moduleEditTabList.value[MODULE_EDIT_CODE_TEST].tabList = codeData.value.tests.map(
+      (test, ix) => ({id: ix + 100, name: test.name})
+  )
+  codeData.value.tests[codeData.value.tests.length - 1].name = ""
+}
+const reloadFileNames = () => {
+  codeData.value.files[codeData.value.files.length - 1].name = t('$vuetify.code_module.new_file')
+  moduleEditTabList.value[MODULE_EDIT_CODE_STUD].tabList = codeData.value.files.map(
+      (file, ix) => ({id: ix + 1000, name: file.name})
+  )
+  codeData.value.files[codeData.value.files.length - 1].name = ""
+}
+
+const reloadModuleTestTab = () => {
+  codeData.value.tests.push({name: ""})
+  reloadTestNames()
+}
+const reloadModuleFileTab = () => {
+  codeData.value.files.push({
+    name: "",
+    codeLimit: 1024,
+    content: DEFAULT_CODE_CONTENT,
+    reference: '',
+    headerFile: false
+  })
+  reloadFileNames()
+}
+const deleteTest = (test) => {
+  if (test.tmp) { // delete only local
+    codeData.value.tests.splice(codeData.value.tests.indexOf(test), 1)
+    codeData.value.tests.splice(codeData.value.tests.length - 1, 1) // remove "createTest"
+    reloadModuleTestTab()
+    return
+  }
+
+  // delete from api
+  codeApi.deleteTest(test.id)
+      .then(() => {
+        reload()
+        appState.value.notifications.push({
+          type: "success", title: t(`$vuetify.code_module.delete_test_title`),
+          text: t(`$vuetify.code_module.delete_test_text`),
+        })
+      })
+      .catch((err) => { error.value = err.code })
+}
+const deleteFile = (file) => {
+  if (file.tmp) { // delete only local
+    codeData.value.files.splice(codeData.value.files.indexOf(file), 1)
+    codeData.value.files.splice(codeData.value.files.length - 1, 1) // remove "createFile"
+    reloadModuleFileTab()
+    return
+  }
+
+  // delete from api
+  codeApi.deleteFile(file.id)
+      .then(() => {
+        reload()
+        appState.value.notifications.push({
+          type: "success", title: t(`$vuetify.code_module.delete_file_title`),
+          text: t(`$vuetify.code_module.delete_file_text`),
+        })
+      })
+      .catch((err) => { error.value = err.code })
+}
+const addTest = (test) => {
+  test.id = codeData.value.tests.length
+  test.tmp = true
+  reloadModuleTestTab()
+}
+const addFile = (file) => {
+  file.id = codeData.value.files.length
+  file.tmp = true
+  reloadModuleFileTab()
+}
+
+const codeData = ref(null)
+const originalCodeData = ref(null)
+const error = ref(null)
+provide('codeData', codeData)
+
+const routerNext = inject('routerNext')
+const unsavedChangesDialog = inject('unsavedChangesDialog')
+
+const moduleEditItem = inject('moduleEditItem')
+const moduleEditTabList = inject('moduleEditTabList')
+const createEditCallback  = inject('createEditCallback', () => {})
+
+createEditCallback.value = (module) => {
+  codeData.value.tests.splice(codeData.value.tests.length - 1, 1) // remove "createTest"
+  codeData.value.files.splice(codeData.value.files.length - 1, 1) // remove "createFile"
+  const promise = props.moduleId ? codeApi.patchCode(props.moduleId, codeData.value) :
+    codeApi.postCode(module.id, codeData.value)
+  reloadModuleTestTab()
+  reloadModuleFileTab()
+  return promise
+}
+
+// tab switch
+watch(moduleEditItem, (now, old) => {
+  if (old.id >= 100 && old.id < 1000)
+    reloadTestNames()
+  if (old.id >= 1000)
+    reloadFileNames()
+})
+
+const reload = async () => {
+  moduleEditTabList.value[MODULE_EDIT_CODE_INFO] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_INFO]
+  moduleEditTabList.value[MODULE_EDIT_CODE_TEST] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_TEST]
+  moduleEditTabList.value[MODULE_EDIT_CODE_STUD] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_STUD]
+  moduleEditTabList.value[MODULE_EDIT_CODE_ENV] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_ENV]
+  moduleEditTabList.value[MODULE_EDIT_CODE_TEAC] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_TEAC]
+  if (props.moduleId) {
+    await codeApi.codeDetail(props.moduleId)
+        .then((response) => {
+          codeData.value = response
+          reloadModuleTestTab()
+          reloadModuleFileTab()
+          originalCodeData.value = JSON.parse(JSON.stringify(codeData.value))
+        })
+        .catch((err) => {
+          error.value = err
+        })
+  } else {
+    originalCodeData.value = null
+    codeData.value = {
+      codeType: 'TEST_ASSERT',
+      interactionType: 'EDITOR',
+      codeHidden: '',
+      fileLimit: 10240,
+      hideCompilerOutput: false,
+      referencePublic: false,
+      envelopeType: 'ENV_C',
+      customEnvelope: 'namespace __STUDENT_NAMESPACE__ {\n\t__STUDENT_FILE__\n}',
+      libraryType: 'LIB_C',
+      assignment: '',
+      tests: [],
+      files: [{
+        name: MODULE_FILE_CODE,
+        tmp: true,
+        id: -1,
+        codeLimit: 1024,
+        content: DEFAULT_CODE_CONTENT,
+        reference: '',
+        headerFile: false
+      }],
+    }
+    reloadModuleTestTab()
+    reloadModuleFileTab()
+  }
+}
+onMounted(async () => {
+  onBeforeRouteLeave((to, from, next) => {
+    if (JSON.stringify(originalCodeData.value) === JSON.stringify(codeData.value)) { // ok
+      next()
+      return
+    }
+    appState.value.leftDrawer = true
+    routerNext.value = next
+    unsavedChangesDialog.value = true
+  })
+  await reload()
+})
+</script>
+
+<template>
+  <LoadingScreen :items="codeData" :error="error">
+    <template #items>
+      <CodeEditModulePartInformation v-if="moduleEditItem.id === MODULE_EDIT_CODE_INFO" :read-only="props.readOnly" :module-id="moduleId" :add-file="addFile" />
+      <CodeEditModulePartTest v-else-if="moduleEditItem.id >= 100 && moduleEditItem.id < 1000" :test-id="moduleEditItem.id - 100"
+                              :add-test="addTest" :delete-test="deleteTest" :read-only="props.readOnly" />
+      <CodeEditModulePartFile v-else-if="moduleEditItem.id >= 1000" :file-id="moduleEditItem.id - 1000"
+                              :add-file="addFile" :delete-file="deleteFile" :read-only="props.readOnly" />
+      <CodeEditModulePartEnvelope v-if="moduleEditItem.id === MODULE_EDIT_CODE_ENV" />
+      <CodeEditor v-if="moduleEditItem.id === MODULE_EDIT_CODE_TEAC" class="mb-4" code-key="codeHidden" />
+    </template>
+  </LoadingScreen>
+</template>

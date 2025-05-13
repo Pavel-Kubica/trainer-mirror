@@ -1,0 +1,68 @@
+stages:
+  - build
+  - deploy
+
+build backend:
+  stage: build
+  image: $CI_REGISTRY/ict/images/buildah:latest
+  script:
+    - |
+      if [[ "$CI_COMMIT_REF_NAME" == "feature/scoring-rules" ]]; then 
+        IMAGE_TAG="backend:scoring-rules"
+      else 
+        IMAGE_TAG="backend:$CI_COMMIT_REF_NAME"
+      fi
+      echo "IMAGE_TAG = $IMAGE_TAG"
+    - buildah login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - buildah build --squash --tag $IMAGE_TAG backend
+    - buildah push $IMAGE_TAG $CI_REGISTRY_IMAGE/$IMAGE_TAG
+  only:
+    - dev
+    - /dev-.*/
+    - /^B.*$/
+    - feature/scoring-rules
+
+build frontend:
+  stage: build
+  image: $CI_REGISTRY/ict/images/buildah:latest
+  variables:
+    IMAGE_TAG: frontend:$CI_COMMIT_REF_NAME
+  script:
+    - sed -i 's/${BUILD_VERSION}/'"$CI_COMMIT_REF_NAME"'/g' frontend/src/components/custom/AppFooter.vue
+    - sed -i 's/${BUILD_SHA}/'"$CI_COMMIT_SHORT_SHA"'/g' frontend/src/components/custom/AppFooter.vue
+    - buildah login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - buildah build --squash --tag $IMAGE_TAG frontend
+    - buildah push $IMAGE_TAG $CI_REGISTRY_IMAGE/$IMAGE_TAG
+  only:
+    - dev
+    - /dev-.*/
+    - /^B.*$/
+
+deploy production:
+  stage: deploy
+  environment: production
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$ID_RSA")
+    - mkdir -p ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - ssh $DEPLOY_USER@$DEPLOY_SERVER "./deploy-prod.sh $CI_COMMIT_REF_NAME $CI_COMMIT_SHA"
+  only:
+    - /^B.*$/
+
+deploy dev:
+  stage: deploy
+  environment: dev
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$ID_RSA")
+    - mkdir -p ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - ssh $DEPLOY_USER@$DEPLOY_SERVER "./deploy-dev.sh $CI_COMMIT_REF_NAME $CI_COMMIT_SHA"
+  only:
+    - /dev-.*/
+    - dev

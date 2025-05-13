@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: trainer
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - "./db/create.sql:/docker-entrypoint-initdb.d/1.sql"
+      - "./db/insert.sql:/docker-entrypoint-initdb.d/2.sql"
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .test.env
+    restart: always
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "127.0.0.1:8081:8080"
+  frontend:
+    build: ./frontend
+    x-bake:
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    links:
+      - backend:backend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
