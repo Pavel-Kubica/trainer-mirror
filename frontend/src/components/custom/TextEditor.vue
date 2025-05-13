@@ -12,7 +12,6 @@ const store = useUserStore()
 
 const onUploadImg = async (images, callback) => {
   const results = await Promise.all(images.map((image) => moduleApi.postImage(image)))
-  console.log(results)
   callback(results.map((imagePath) => axios.defaults.baseURL + imagePath))
 }
 

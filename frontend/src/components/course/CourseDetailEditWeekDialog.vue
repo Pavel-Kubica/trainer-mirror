@@ -70,7 +70,11 @@ onMounted(loaded)
 
 <template>
   <v-dialog v-model="createEditDialog" width="auto">
-    <v-card :title="translate(`dialog_${week ? 'edit' : 'create'}`)">
+    <v-card>
+      <v-card-title class="d-flex justify-space-between pt-4">
+        {{ translate(`dialog_${week ? 'edit' : 'create'}`) }}
+        <v-icon icon="mdi-close" size="24" @click="createEditDialog = false" />
+      </v-card-title>
       <LoadingScreen :items="!loading" :error="error">
         <template #content>
           <v-form @submit.prevent="submit">
@@ -86,14 +90,6 @@ onMounted(loaded)
           </v-form>
         </template>
       </LoadingScreen>
-      <v-card-actions>
-        <v-btn v-if="error" :block="true" variant="tonal" color="warning" @click="error = null; loading = false">
-          {{ t('$vuetify.dialog_try_again') }}
-        </v-btn>
-        <v-btn v-else :block="true" variant="tonal" color="error" @click="createEditDialog = false">
-          {{ t('$vuetify.dialog_close') }}
-        </v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>

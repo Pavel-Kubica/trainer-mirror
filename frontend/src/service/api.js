@@ -129,7 +129,7 @@ export const subjectApi = {
         return response.data
     },
 
-    async listMeGuarantor(){
+    async listMeGuarantor() {
         const response = await axios.get(`/subjects/me`)
         return response.data
     }
@@ -294,6 +294,11 @@ export const courseUserApi = {
 
 // Weeks
 export const weekApi = {
+    async listTaught() {
+        const response = await axios.get("/weeks/taught");
+        return response.data;
+    },
+
     async createWeek(week) {
         const response = await axios.post("/weeks", week)
         return response.data
@@ -328,9 +333,7 @@ export const lessonApi = {
     },
 
     async lessonDetail(id) {
-        console.log("lesson detail id ",id)
         const response = await axios.get(`/lessons/${id}`)
-        console.log(response.data)
         return response.data
     },
 
@@ -361,6 +364,16 @@ export const lessonApi = {
 
     async cloneLesson(id, courseId) {
         const response = await axios.post(`/lessons/${id}/courses/${courseId}`)
+        return response.data
+    },
+
+    async cloneLessonToWeek(id, weekId) {
+        const response = await axios.post(`/lessons/${id}/weeks/${weekId}`)
+        return response.data
+    },
+
+    async editLessonModuleOrder(lessonId, moduleIds) {
+        const response = await axios.patch(`/lessons/${lessonId}/modules`, {moduleIds: moduleIds})
         return response.data
     },
 
@@ -420,12 +433,12 @@ export const lessonModuleApi = {
         return response.data
     },
 
-    async getLessonModule(lessonId,moduleId) {
+    async getLessonModule(lessonId, moduleId) {
         const response = await axios.get(`/lessons/${lessonId}/modules/${moduleId}`)
         return response.data
     },
 
-    async getModulesInLesson(lessonId){
+    async getModulesInLesson(lessonId) {
         const response = await axios.get(`/lessons/${lessonId}/modules`)
         return response.data
     }
@@ -439,7 +452,7 @@ export const moduleApi = {
         return response.data
     },
 
-    async moduleListShort(){
+    async moduleListShort() {
         const response = await axios.get("/modules/short")
         return response.data
     },
@@ -527,6 +540,15 @@ export const moduleApi = {
     async getModuleRatings(id) {
         const response = await axios.get(`/modules/${id}/ratings`)
         return response.data
+    },
+
+    async getReferenceSolutionAccessibleAnswer(id) {
+        try {
+            const response = await axios.get(`/code/is_reference_accessible/${id}`);
+            return response.data;
+        } catch (error) {
+            return false;
+        }
     }
 }
 
@@ -565,12 +587,12 @@ export const studentModuleApi = {
         return response.data
     },
 
-    async getStudentModuleRequest(lessonId, moduleId) {
+    async getStudentModuleRequests(lessonId, moduleId) {
         const response = await axios.get(`/lessons/${lessonId}/modules/${moduleId}/requests/me`)
         return response.data
     },
 
-    async getStudentModuleRequestTeacher(lessonId, moduleId, userId) {
+    async getStudentModuleRequestsTeacher(lessonId, moduleId, userId) {
         const response = await axios.get(`/lessons/${lessonId}/modules/${moduleId}/requests/users/${userId}`)
         return response.data
     },
@@ -591,9 +613,8 @@ export const studentModuleApi = {
     },
 
 
-    async getStudentModuleByModuleUserLesson(moduleId, lessonId, userId){
+    async getStudentModuleByModuleUserLesson(moduleId, lessonId, userId) {
         const response = await axios.get(`/lessons/${lessonId}/modules/${moduleId}/users/${userId}/all`)
-        console.log("response - ", response.data)
         return response.data
     },
 
@@ -609,7 +630,7 @@ export const studentModuleApi = {
 
     async postStudentModuleRequestCodeComment(requestId, codeComment) {
         const response = await axios.post(`/student-help-requests/${requestId}/code-comments`, codeComment)
-            return response.data
+        return response.data
     },
 }
 
@@ -645,12 +666,12 @@ export const moduleRatingApi = {
 
 // Discussion
 export const discussionApi = {
-    async getCommentsBasedOnModule(moduleId){
+    async getCommentsBasedOnModule(moduleId) {
         const response = await axios.get(`modules/${moduleId}/teachersNotes`)
         return response.data
     },
 
-    async postComment(moduleId, comment){
+    async postComment(moduleId, comment) {
         const response = await axios.post(`modules/${moduleId}/teachersNotes`, comment)
         return response.data
     },
@@ -679,7 +700,7 @@ export const notificationApi = {
     },
 
     async deleteNotifications() {
-        const response = await axios.delete(`/notifications`)
+        const response = await axios.patch(`/notifications`)
         return response.data
     },
 }
@@ -782,18 +803,14 @@ export const scoringRuleApi = {
     },
 
     async deleteScoringRule(id) {
-        console.log("deleteScoringRule")
         const response = await axios.delete(`/scoringRules/${id}`)
         return response.data
     },
     async editScoringRule(id, scoringRule) {
-        console.log("edit scoring rule - id = ", id)
-        console.log("scoring Rule - ", scoringRule)
         const response = await axios.patch(`/scoringRules/${id}`, scoringRule)
         return response.data
     },
     async createScoringRule(scoringRule) {
-        console.log("create scoring rule - ", scoringRule)
         const response = await axios.post(`/scoringRules`, scoringRule)
         return response.data
     },
@@ -804,7 +821,7 @@ export const scoringRuleApi = {
         return response.data
     },
 
-    async getScoringRuleUser(scoringRuleId, userId){
+    async getScoringRuleUser(scoringRuleId, userId) {
         const response = await axios.get(`/scoringRules/${scoringRuleId}/users/${userId}`)
         return response.data
     },
@@ -820,7 +837,6 @@ export const scoringRuleApi = {
     },
 
     async lessonScoringRulesList(id) {
-        console.log("lessonScoringRulesList with ", id)
         const response = await axios.get(`/scoringRules/lessons?lessonIds=${id}`)
         return response.data
     },

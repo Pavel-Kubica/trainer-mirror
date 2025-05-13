@@ -11,6 +11,8 @@ import CodeEditor from '@/components/custom/CodeEditor.vue'
 import CodeModuleBottomOverlay from '@/components/modules/code/CodeModuleBottomOverlay.vue'
 import CodeModuleRightDrawer from '@/components/modules/code/CodeModuleRightDrawer.vue'
 
+defineProps(['teacher'])
+
 const tabList = inject('tabList')
 const selectedTab = inject('selectedTab')
 const userStore = useUserStore()
@@ -192,7 +194,7 @@ const run = async () => {
         [test.parameter],timeLimit)
     workerHost.pushEOF().then(() => {}) // ensure program doesn't freeze
     runtime.value.workerHosts.push(workerHost)
-    setTimeout(() => {workerHost.kill()},timeLimit*1000 + 1000)
+    setTimeout(() => {console.log('manually killing workerHost due to timeout'); workerHost.kill()},timeLimit ? timeLimit*1000 + 1000 : 30000)
   }
   if (total === 0)
     await finishedTests(0, 1)
@@ -209,12 +211,7 @@ const compileKeyPress = (event) => {
   return false
 }
 
-const isRefTabShown = () => !moduleData.value.teacher && !userStore.anonymous &&
-    userStore.isTeacher(moduleData.value.lesson.week.course) && canEdit(moduleData.value)
-
-const canEdit = (module) => {
-  return module.author === userStore.user.username || module.editors.includes(userStore.user.username)
-}
+const isRefTabShown = () => !userStore.anonymous && userStore.isTeacher(moduleData.value.lesson.week.course)
 
 onBeforeRouteLeave(() => { document.removeEventListener('keydown', compileKeyPress) })
 onMounted(() => {
@@ -223,7 +220,7 @@ onMounted(() => {
     tabList.value[TAB_MODULE_DETAIL + ix] = codeData.value.files[ix].name
   if (moduleData.value.teacher)
     selectedTab.value = TAB_MODULE_DETAIL + "0"
-  if (!moduleData.value.teacher && userStore.isTeacher(moduleData.value.lesson.week.course) && canEdit(moduleData.value) && !userStore.anonymous)
+  if (userStore.isTeacher(moduleData.value.lesson.week.course) && !userStore.anonymous)
     tabList.value[TAB_MODULE_DETAIL + codeData.value.files.length] = t('$vuetify.code_module.tab_teacher')
   if (userStore.isTeacher(moduleData.value.lesson.week.course))
     tabList.value[TAB_MODULE_RATING] = t('$vuetify.tab_rating')
@@ -241,10 +238,10 @@ onMounted(() => {
       <CodeModuleBottomOverlay v-if="selectedTab >= TAB_MODULE_DETAIL" class="pt-2" :file-id="fileId" />
     </v-card>
   </v-window-item>
-  <v-window-item v-if="isRefTabShown()" :key="TAB_MODULE_DETAIL + codeData.files.length" :transition="false" :reverse-transition="false"
+  <v-window-item v-if="isRefTabShown() && !userStore.anonymous" :key="TAB_MODULE_DETAIL + codeData.files.length" :transition="false" :reverse-transition="false"
                  class="full-cm-editor" :value="TAB_MODULE_DETAIL + codeData.files.length">
     <v-card flat class="my-2">
-      <CodeEditor code-key="codeHidden" />
+      <CodeEditor code-key="codeHidden" :disabled="true" />
     </v-card>
   </v-window-item>
   <CodeModuleBottomOverlay v-if="selectedTab < TAB_MODULE_DETAIL" :file-id="codeData.files.length === 1 ? 0 : undefined" />

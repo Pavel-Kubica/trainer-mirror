@@ -33,15 +33,13 @@ const performAction = async () => {
   <v-dialog v-model="courseSecretDialog" width="auto">
     <v-card class="dialog-title" :title="title">
       <template #append>
-        <v-btn :block="true" variant="tonal" color="blue" @click="courseSecretDialog = false">
-          {{ t('$vuetify.dialog_close') }}
-        </v-btn>
+        <v-icon icon="mdi-close" size="24" @click="courseSecretDialog = false" />
       </template>
       <LoadingScreen :items="dummyItem" :error="dummyError">
         <template #content>
           <v-form class="pb-8" @submit.prevent="performAction">
             <v-text-field v-model="secret" :label="t('$vuetify.course_join_code')"
-                          placeholder="12345" :autofocus="true" :error-messages="error" />
+                          :autofocus="true" :error-messages="error" />
 
             <v-btn class="mt-2" type="button" :block="true" color="green" size="large" variant="tonal" @click="performAction">
               {{ props.text }}

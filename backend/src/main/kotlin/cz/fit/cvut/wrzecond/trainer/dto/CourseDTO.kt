@@ -15,7 +15,9 @@ import cz.fit.cvut.wrzecond.trainer.entity.RoleLevel
  */
 data class CourseFindDTO(override val id: Int, val name: String, val shortName: String,
                          val subject: SubjectFindDTO?, val semester: SemesterFindDTO?,
-                         val lessonCompleted: Int, val lessonCount: Int, val role: RoleLevel?) : IFindDTO
+                         // because of performance, looking for better solution
+                         //val lessonCompleted: Int, val lessonCount: Int,
+                         val role: RoleLevel?) : IFindDTO
 
 /**
  * Data transfer object for course detail

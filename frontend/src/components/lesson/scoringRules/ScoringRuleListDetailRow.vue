@@ -4,20 +4,20 @@ import {lessonModuleApi, scoringRuleApi, studentModuleApi} from "@/service/api";
 import {computed, inject, onMounted, provide, ref, watch} from "vue";
 import {useLocale} from "vuetify";
 import TooltipIconButton from "@/components/custom/TooltipIconButton.vue";
-import ScoringRuleDeleteDialog from "@/components/lesson/scoringRules/ScoringRuleDeleteDialog.vue";
 import ScoringRuleModulesListDetailRow from "@/components/lesson/scoringRules/ScoringRuleModulesListDetailRow.vue";
 import Vuedraggable from "vuedraggable";
-import LessonModuleList from "@/components/lesson/scoringRules/LessonModuleList.vue";
+import ScoringRuleAddModuleDialog from "@/components/lesson/scoringRules/ScoringRuleAddModuleDialog.vue";
 import { OhVueIcon, addIcons } from "oh-vue-icons";
-import { BiLayoutTextSidebarReverse } from "oh-vue-icons/icons";
+import { BiLayoutTextSidebarReverse } from "oh-vue-icons/icons/bi";
 import ScoringRuleDescriptionDialog from "@/components/lesson/scoringRules/ScoringRuleDescriptionDialog.vue";
+import DeleteDialog from "@/components/custom/DeleteDialog.vue";
 
 
 const props = defineProps(['scoringRule','reload','edit','lessonId','lesson'])
 const scoringRuleData = ref(props.scoringRule)
 const userStore = useUserStore()
 const {t} = useLocale()
-const displayDeleteDialog = ref(false)
+const deleteDialog = ref(false)
 const addModuleDialog = ref(false)
 const completedModules = ref(0)
 const modulesScoringRule = ref([])
@@ -30,7 +30,7 @@ const studentModulesMap = ref({})
 const hiddenScoringRules = ref({})
 
 provide('descriptionDialog',descriptionDialog)
-provide('displayDeleteDialog', displayDeleteDialog)
+provide('deleteDialog', deleteDialog)
 provide('scoringRuleData',scoringRuleData)
 provide('editRuleDialog',editRuleDialog)
 
@@ -39,7 +39,7 @@ addIcons(BiLayoutTextSidebarReverse);
 const moduleListState = ref({
   searchId: '',
   searchText: '',
-  searchAuthors: [userStore.user.username],
+  searchAuthors: [],
   searchTypes: [],
   searchTopics: [],
   searchSubjects: []
@@ -90,7 +90,7 @@ const removeModuleFromRule = async (module) => {
 
 const deleteScoringRule = async () => {
   await scoringRuleApi.deleteScoringRule(props.scoringRule.id)
-  displayDeleteDialog.value = false
+  deleteDialog.value = false
   await props.reload()
 }
 
@@ -107,6 +107,15 @@ const modulesComplete = computed(() => {
 const modulesComplete2 = computed(() => {
   return completedModules.value
 })
+const deleteDialogTexts = computed(() => {
+  return {
+    itemName: scoringRuleData.value.name,
+    title: '$vuetify.lesson_edit_rules_delete',
+    start: '$vuetify.lesson_edit_rule_delete_text_p1',
+    middle: '$vuetify.lesson_edit_rule_delete_text_p2',
+    end: '$vuetify.irreversible_action',
+  }
+})
 
 watch(props, loadModulesDetail)
 onMounted(async () => {
@@ -116,10 +125,17 @@ onMounted(async () => {
 </script>
 <template>
   <ScoringRuleDescriptionDialog :lesson-id="props.lessonId" :scoring-rule="scoringRuleData" :callback="reload" />
-  <ScoringRuleDeleteDialog :scoring-rule="scoringRuleData" @delete-button-clicked="deleteScoringRule" />
-  <v-dialog v-model="addModuleDialog" width="80%">
-    <LessonModuleList :lesson-id="props.lessonId" :dismiss="addModuleDialogDismiss"
-                      :reload="reload" :state="moduleListState" :scoring-rule-id="props.scoringRule.id" />
+  <DeleteDialog :item-name="deleteDialogTexts.itemName"
+                :title="deleteDialogTexts.title"
+                :text-start="deleteDialogTexts.start" :text-before-line-break="deleteDialogTexts.middle" :text-second-line="deleteDialogTexts.end"
+                :on-cancel="() => deleteDialog = false"
+                :on-confirm="deleteScoringRule"
+                :text-confirm-button="'$vuetify.action_delete'" />
+  <v-dialog v-model="addModuleDialog" width="100%">
+    <ScoringRuleAddModuleDialog :lesson-id="props.lessonId" :dismiss="addModuleDialogDismiss"
+                                :reload="reload" :state="moduleListState" :scoring-rule-id="props.scoringRule.id" />
+    <!-- height 100% fixes the dialog to the top, but creates an invisible area below that otherwise wouldn't dismiss it -->
+    <div style="flex: 1" @click="() => addModuleDialog = false" />
   </v-dialog>
   <tr style="cursor: pointer">
     <th v-ripple.center colspan="5">
@@ -158,17 +174,17 @@ onMounted(async () => {
           <span v-else>{{ modulesComplete }}/{{ scoringRuleData.toComplete ? scoringRuleData.toComplete : scoringRuleData.modules.length }}</span>
         </div>
         <span class="flex-grow-1 text-center"> {{ scoringRuleData.points }}{{ t('$vuetify.lesson_edit_rule_points') }}</span>
-        <TooltipIconButton v-if="edit" icon="mdi-pencil" color="black"
+        <TooltipIconButton v-if="edit" icon="mdi-pencil"
                            @click="(e) => { e.stopPropagation(); editScoringRule = scoringRuleData; createEditDialog = true }" />
-        <v-btn v-if="edit" color="black" variant="text"
+        <v-btn v-if="edit" variant="text"
                icon="" @click="(e) => e.stopPropagation()">
           <TooltipIconButton icon="mdi-plus" @click="addModuleDialog = true" />
           <v-tooltip activator="parent" location="top">
             {{ t('$vuetify.rule_new_module_button') }}
           </v-tooltip>
         </v-btn>
-        <TooltipIconButton v-if="edit" icon="mdi-delete" color="black"
-                           @click="(e) => {e.stopPropagation(); displayDeleteDialog=true}" />
+        <TooltipIconButton v-if="edit" icon="mdi-delete"
+                           @click.stop="() => deleteDialog = true" />
         <v-btn variant="text" :icon="hiddenScoringRules[scoringRuleData.id] ? 'mdi-chevron-down' : 'mdi-chevron-up'"
                @click.prevent="hiddenScoringRules[scoringRuleData.id] = !hiddenScoringRules[scoringRuleData.id]" />
       </div>

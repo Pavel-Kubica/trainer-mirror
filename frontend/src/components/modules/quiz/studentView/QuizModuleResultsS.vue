@@ -181,7 +181,6 @@ onMounted(async () => {
                                         questionList.value[i] = studAnswers.value[i].questionData
                                         possibleAnswers.value[i] = studAnswers.value[i].possibleAnswersData
                                         questionShow.value[i] = false
-                                        console.log(studAnswers.value[i])
                                       })
                                 })
                           })
@@ -263,24 +262,24 @@ onUnmounted(() => {
 
           <div v-for="(option, oIndex) in studAnswers[index].possibleAnswersData" :key="option" class="mb-8">
             <v-row v-if="studAnswers[index].correctAnswerData.includes(option)" class="mt-16 align-center " style="background-color: green">
-              <v-icon v-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" size="25" class="ml-8" color="black">
+              <v-icon v-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" size="25" class="ml-8">
                 mdi-radiobox-marked
               </v-icon>
-              <v-icon v-else size="25" class="ml-8" color="black">
+              <v-icon v-else size="25" class="ml-8">
                 mdi-radiobox-blank
               </v-icon>
               <MdPreview v-model="studAnswers[index].possibleAnswersData[oIndex]" language="en-US" preview-theme="github"
                          :theme="userStore.darkMode ? 'dark' : 'light'" :no-iconfont="true" :read-only="true" class="px-4 pb-2 pt-3 ml-8 text-left" style="background-color: green; width: 85%" />
-              <v-icon size="25" class="ml-8" color="black">
+              <v-icon size="25" class="ml-8">
                 mdi-checkbox-marked-circle
               </v-icon>
             </v-row>
 
             <v-row v-else-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" class="mt-16 align-center " style="background-color: red">
-              <v-icon v-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" size="25" class="ml-8" color="black">
+              <v-icon v-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" size="25" class="ml-8">
                 mdi-radiobox-marked
               </v-icon>
-              <v-icon v-else size="25" class="ml-8" color="black">
+              <v-icon v-else size="25" class="ml-8">
                 mdi-radiobox-blank
               </v-icon>
               <MdPreview v-model="studAnswers[index].possibleAnswersData[oIndex]" language="en-US" preview-theme="github"
@@ -288,10 +287,10 @@ onUnmounted(() => {
             </v-row>
 
             <v-row v-else-if="userStore.darkMode" class="mt-16 align-center " style="background-color: black">
-              <v-icon v-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" size="25" class="ml-8" color="black">
+              <v-icon v-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" size="25" class="ml-8">
                 mdi-radiobox-marked
               </v-icon>
-              <v-icon v-else size="25" class="ml-8" color="black">
+              <v-icon v-else size="25" class="ml-8">
                 mdi-radiobox-blank
               </v-icon>
               <MdPreview v-model="studAnswers[index].possibleAnswersData[oIndex]" language="en-US" preview-theme="github"
@@ -299,10 +298,10 @@ onUnmounted(() => {
             </v-row>
 
             <v-row v-else class="mt-16 align-center " style="background-color: white">
-              <v-icon v-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" size="25" class="ml-8" color="black">
+              <v-icon v-if="studAnswers[index].answerData && studAnswers[index].answerData.includes(option)" size="25" class="ml-8">
                 mdi-radiobox-marked
               </v-icon>
-              <v-icon v-else size="25" class="ml-8" color="black">
+              <v-icon v-else size="25" class="ml-8">
                 mdi-radiobox-blank
               </v-icon>
               <MdPreview v-model="studAnswers[index].possibleAnswersData[oIndex]" language="en-US" preview-theme="github"

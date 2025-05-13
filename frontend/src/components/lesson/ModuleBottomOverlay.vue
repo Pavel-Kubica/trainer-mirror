@@ -1,13 +1,13 @@
 <script setup>
 import { inject } from 'vue'
 import { useLocale } from 'vuetify'
-import { studentModuleApi } from '@/service/api'
+import {studentModuleApi} from '@/service/api'
 import { getErrorMessage } from '@/plugins/constants'
 import { useUserStore } from '@/plugins/store'
 import router from '@/router'
 
 const appState = inject('appState')
-const reloadHook = inject('reloadHook')
+const modulesReloadHook = inject('modulesReloadHook')
 const { t } = useLocale()
 const userStore = useUserStore()
 
@@ -21,7 +21,7 @@ const allowShow = async (e) => {
   studentModuleApi.putStudentModule(moduleData.value.lesson.id, moduleData.value.id, {
     allowedShow: moduleData.value.allowedShow
   }).then(() => {
-    reloadHook.value = new Date().getTime() // update side menu
+    modulesReloadHook.value = new Date().getTime() // update side menu
     appState.value.notifications.push({
       type: "success",
       title: t(`$vuetify.code_module.${nowAllowed ? '' : 'dis'}allowed_show.title`),
@@ -37,12 +37,32 @@ const allowShow = async (e) => {
   })
 }
 
-const resetProgress = async (e) => {
-  e.stopPropagation()
-  if (props.resetCallback) props.resetCallback()
-  studentModuleApi.deleteStudentModule(moduleData.value.lesson.id, moduleData.value.id)
-      .then(() => router.go(0))
-      .catch((error) => { console.log(error) })
+const resetProgressDialog = inject('deleteDialog');
+const resetProgressDialogTexts = inject('deleteDialogTexts');
+const doResetProgress = inject('doDelete');
+
+const onClickResetProgressButton = () => {
+  resetProgressDialogTexts.value = {
+    title: "$vuetify.lesson_edit_modules_remove",
+    itemName: '',
+    textStart: '$vuetify.code_module.reset_progress_dialog_text',
+    textMiddle: '',
+    textEnd: "$vuetify.irreversible_action",
+    textConfirmButton: "$vuetify.action_reset"
+  }
+  doResetProgress.value = () => {
+    if (props.resetCallback) props.resetCallback()
+    studentModuleApi.deleteStudentModule(moduleData.value.lesson.id, moduleData.value.id) // replace the studentmodule with an empty one, the rest of the application expects all studentmodules to exist
+        .then(() => {
+          studentModuleApi.putStudentModule(moduleData.value.lesson.id, moduleData.value.id, {})
+          router.go(0)
+        })
+        .catch((error) => { console.log(error) })
+    resetProgressDialog.value = false;
+  }
+
+  resetProgressDialog.value = true
+
 }
 </script>
 
@@ -56,7 +76,8 @@ const resetProgress = async (e) => {
           {{ t(`$vuetify.code_module.${moduleData.allowedShow ? 'disallow_show_tooltip' : 'allow_show_tooltip'}`) }}
         </v-tooltip>
       </v-btn>
-      <v-btn v-if="!moduleData.teacher && userStore.isTeacher(moduleData.lesson.week.course)" icon variant="text" @click="resetProgress">
+      <!-- Only allowed for teachers, backend logic is this way -->
+      <v-btn v-if="!moduleData.teacher && userStore.isTeacher(moduleData.lesson.week.course)" icon variant="text" @click.stop.prevent="onClickResetProgressButton">
         <v-icon icon="mdi-trash-can" />
         <v-tooltip activator="parent" location="top">
           {{ t('$vuetify.code_module.reset_progress') }}

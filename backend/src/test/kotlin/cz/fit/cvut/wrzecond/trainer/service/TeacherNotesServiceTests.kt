@@ -45,6 +45,10 @@ class TeacherNotesServiceTests (
     @MockBean val subjectGuarantorRepository: SubjectGuarantorRepository,
     @MockBean val lessonRepository: LessonRepository,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val userService: UserService,
+
     service: TeacherNotesService
 ) : StringSpec({
     val userDto = UserFindDTO(1, "testuser", "Test user")

@@ -1485,7 +1485,7 @@ paths:
           description: "Unauthorized user"
       security:
         - login_secret: [ ]
-    delete:
+    patch:
       tags:
         - "notifications"
       summary: "Mark all notifications as read"

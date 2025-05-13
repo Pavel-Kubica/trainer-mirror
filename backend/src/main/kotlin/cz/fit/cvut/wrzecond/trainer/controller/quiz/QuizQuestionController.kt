@@ -36,7 +36,7 @@ class QuizQuestionController(private val service: QuizQuestionService, userServi
                            @RequestBody dto: QuizQuestionEditDTO, request: HttpServletRequest,
                            response: HttpServletResponse,
                            @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String)
-            = authenticate(request, {it.create}, loginSecret) { user ->
+            = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
                 setCookie(loginSecret, response)
                 service.putQuizQuestion(id, questionId, dto, user) }
 
@@ -55,7 +55,7 @@ class QuizQuestionController(private val service: QuizQuestionService, userServi
     fun deleteQuizQuestion(@PathVariable id: Int, @PathVariable questionId: Int, request: HttpServletRequest,
                             response: HttpServletResponse,
                             @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String)
-            = authenticate(request, {it.delete}, loginSecret) { user ->
+            = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
                 setCookie(loginSecret, response)
                 service.delQuizQuestion(id, questionId, user) }
 

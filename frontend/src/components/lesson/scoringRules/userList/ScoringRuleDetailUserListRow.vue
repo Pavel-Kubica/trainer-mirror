@@ -82,7 +82,7 @@ const mapProgressEmoji = (smod) => (smod.sm?.progress >= smod.module.minPercent 
     <td>
       <TooltipIconButton icon="mdi-eye" color="rgb(var(--v-theme-anchor))"
                          :tooltip="t('$vuetify.lesson_user_list_row_detail')"
-                         :to="new Nav.LessonUserDetail(lesson, user, false).routerPath()" />
+                         :to="new Nav.LessonUserDetail(lesson, user).routerPath()" />
     </td>
   </tr>
 </template>

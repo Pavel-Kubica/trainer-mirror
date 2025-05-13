@@ -25,15 +25,11 @@ const submitAllowed = () => {
 
 const translate = (key) => t(`$vuetify.rating_edit_${key}`)
 const loaded = () => {
-  console.log("MODULE - ", module)
   updateRating(0)
   setTimeout(() => {
     if (module.value !== undefined && module.value !== null){
-      console.log("module ratings - ", module.value.ratings)
-      console.log("find st id - ", userStore.user.id)
       rating.value = module.value.ratings.find((rat) => rat.student.id === parseInt(userStore.user.id));
       if (rating.value) {
-        console.log("rating - ", rating.value)
         ratingData.value = Object.assign({}, rating.value)
         updateRating(rating.value.points)
       } else {
@@ -60,7 +56,6 @@ const submit = () => {
   loading.value = true
   ratingData.value.points = userRating.value
   rating.value = module.value.ratings.find((rat) => rat.student.id === parseInt(userStore.user.id))
-  console.log("rating - ", rating.value)
   const promise = module.value !== undefined && module.value !== null && rating.value !== undefined ? moduleRatingApi.editRating(rating.value.id, ratingData.value) : moduleRatingApi.createRating(ratingData.value)
   promise
       .then(async () => {

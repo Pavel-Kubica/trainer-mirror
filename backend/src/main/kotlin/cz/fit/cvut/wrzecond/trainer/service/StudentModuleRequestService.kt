@@ -18,12 +18,14 @@ import org.springframework.web.server.ResponseStatusException
  * @property repository Repository for managing StudentModuleRequests entities.
  * @property codeCommentRepository Repository for managing CodeComments entities.
  * @property logRepository Repository for managing Logs entities.
+ * @property logService Service for managing Logs entities.
  * @property userRepository Repository for managing User entities.
  */
 @Service
 class StudentModuleRequestService (override val repository: StudentModuleRequestRepository,
                                    private val codeCommentRepository: CodeCommentRepository,
                                    private val logRepository: LogRepository,
+                                   private val logService: LogService,
                                    userRepository: UserRepository)
 : IServiceBase<StudentModuleRequest>(repository, userRepository) {
 
@@ -53,7 +55,7 @@ class StudentModuleRequestService (override val repository: StudentModuleRequest
         if (codeCommentRepository.commentExists(smr.id, dto.fileName, dto.rowNumber))
             throw ResponseStatusException(HttpStatus.CONFLICT, "Comment on this line already exists")
         val codeComment = codeCommentRepository.saveAndFlush(converter.toEntity(dto, smr))
-        logRepository.saveAndFlush(createLogEntry(userDto, codeComment, "creatw"))
+        logService.log(userDto, codeComment, "create")
         converter.toFindDTO(codeComment)
     }
 

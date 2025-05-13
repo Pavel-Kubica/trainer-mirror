@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
+import cz.fit.cvut.wrzecond.trainer.service.LogService
 
 /**
  * Service class for managing modules.
@@ -24,7 +25,7 @@ import org.springframework.web.server.ResponseStatusException
  * @property moduleSubjectRepository Repository for module subject entities.
  * @property teacherNoteRepository Repository for teacher note entities.
  * @property studentRatingRepository Repository for student rating entities.
- * @property logRepository Repository for log entities.
+ * @property logService Service for log entities.
  * @property userRepository Repository for user entities.
  */
 @Service
@@ -36,7 +37,7 @@ class ModuleService(
     private val topicRepository: TopicRepository, private val moduleTopicRepository: ModuleTopicRepository,
     private val subjectRepository: SubjectRepository, private val moduleSubjectRepository: ModuleSubjectRepository,
     private val teacherNoteRepository: TeacherNoteRepository, private val studentRatingRepository: StudentRatingRepository,
-    private val logRepository: LogRepository, val userRepository: UserRepository
+    private val logService: LogService, val userRepository: UserRepository
 ) : IServiceImpl<Module, ModuleFindDTO, ModuleGetDTO, ModuleCreateDTO, ModuleUpdateDTO>(repository, userRepository) {
 
     /**
@@ -121,11 +122,11 @@ class ModuleService(
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
 
         val modulePersisted = repository.save(converter.toEntity(dto, user))
-        logRepository.saveAndFlush(createLogEntry(userDto, modulePersisted, "create"))
+        logService.log(userDto, modulePersisted, "create")
         moduleEditorRepository.saveAllAndFlush(dto.editors.map {  userId ->
             ModuleEditor(modulePersisted, userRepository.getReferenceById(userId))
         }).map{
-            logRepository.saveAndFlush(createLogEntry(userDto, it, "create"))
+            logService.log(userDto, it, "create")
         }
         converter.toGetDTO(modulePersisted)
     }
@@ -146,17 +147,17 @@ class ModuleService(
             if (dto.lastModificationTime < module.lastModificationTime)
                 throw ResponseStatusException(HttpStatus.PRECONDITION_FAILED)
             val modulePersisted = repository.save(converter.merge(module, dto))
-            logRepository.saveAndFlush(createLogEntry(userDto, modulePersisted, "update"))
+            logService.log(userDto, modulePersisted, "update")
             if (dto.editors != null && dto.editors != module.editors.map { it.id } && user.id == module.author.id) {
                 moduleEditorRepository.deleteAll(module.editors)
                 module.editors.map {
-                    logRepository.saveAndFlush(createLogEntry(userDto, it, "delete"))
+                    logService.log(userDto, it, "delete")
                 }
                 moduleEditorRepository.flush()
                 moduleEditorRepository.saveAllAndFlush(dto.editors.map { userId ->
                     ModuleEditor(modulePersisted, userRepository.getReferenceById(userId))
                 }).map{
-                    logRepository.saveAndFlush(createLogEntry(userDto, it, "update"))
+                    logService.log(userDto, it, "update")
                 }
             }
             converter.toGetDTO(modulePersisted)
@@ -182,7 +183,7 @@ class ModuleService(
             // remove module file and module
             module.file?.let { file -> fileService.deleteFile(file, FileService.UPLOADS_PATH) }
             repository.delete(module)
-            logRepository.saveAndFlush(createLogEntry(userDto, module, "delete"))
+            logService.log(userDto, module, "delete")
         }
 
     /**
@@ -210,7 +211,7 @@ class ModuleService(
             val fileName = "${FileService.generateFileName()}.tar"
             fileService.saveFile(file, fileName, FileService.UPLOADS_PATH)
             val updatedModule = repository.saveAndFlush(module.copy(file = fileName))
-            logRepository.saveAndFlush(createLogEntry(userDto, updatedModule, "update"))
+            logService.log(userDto, updatedModule, "update")
             converter.toGetDTO(updatedModule)
         }
 

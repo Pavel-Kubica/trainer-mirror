@@ -46,6 +46,10 @@ class CourseServiceTests(
     @MockBean val subjectGuarantorRepository: SubjectGuarantorRepository,
     @MockBean val authorizationService: AuthorizationService,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val userService: UserService,
+
     service: CourseService
 ) : StringSpec({
     val userDto = UserFindDTO(1, "testuser", "Test user")
@@ -89,9 +93,9 @@ class CourseServiceTests(
     val sdto1 = SubjectFindDTO(subject1.id, subject1.name, subject1.code)
     val sdto2 = SubjectFindDTO(subject2.id, subject2.name, subject2.code)
     val smdto1 = SemesterFindDTO(semester.id, semester.code, semester.from, semester.until)
-    val dto1 = CourseFindDTO(course1.id, course1.name, course1.shortName, sdto1, smdto1, 0, 0, RoleLevel.STUDENT)
+    val dto1 = CourseFindDTO(course1.id, course1.name, course1.shortName, sdto1, smdto1,  RoleLevel.STUDENT)
     val gdto1 = CourseGetDTO(course1.id, course1.name, course1.shortName, sdto1, smdto1, RoleLevel.STUDENT, course1.public,null, emptyList())
-    val dto2 = CourseFindDTO(course2.id, course2.name, course2.shortName, sdto2, smdto1, 0, 0, RoleLevel.TEACHER)
+    val dto2 = CourseFindDTO(course2.id, course2.name, course2.shortName, sdto2, smdto1,  RoleLevel.TEACHER)
     val gdto2 = CourseGetDTO(course2.id, course2.name, course2.shortName, sdto2, smdto1, RoleLevel.TEACHER, course2.public,course2.secret, emptyList())
 
     beforeTest { // Reset counters

@@ -33,6 +33,7 @@ import java.time.Instant
 class TopicServiceTests (
     @MockBean val repository: TopicRepository,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
     @MockBean val authorizationService: AuthorizationService,
     @MockBean val moduleRepository: ModuleRepository,
     @MockBean val smRepository: StudentModuleRepository,
@@ -46,6 +47,9 @@ class TopicServiceTests (
     @MockBean val fileService: FileService,
     @MockBean val lessonRepository: LessonRepository,
     @Autowired val converterService: ConverterService,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val userService: UserService,
+
     service: TopicService
 ): StringSpec({
     val userDto = UserFindDTO(1, "testuser", "Test user")

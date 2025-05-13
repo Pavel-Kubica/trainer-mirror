@@ -1,8 +1,9 @@
 <script setup>
-import {computed, inject, ref} from 'vue'
+import {inject, ref} from 'vue'
 import {semesterApi} from "@/service/api";
 import {useLocale} from "vuetify";
 import {getErrorMessage} from "@/plugins/constants";
+import LocaleAwareDatepicker from "@/components/custom/LocaleAwareDatepicker.vue";
 const displayDialog = ref(false)
 const semesterData = ref(null)
 const { t } = useLocale()
@@ -33,13 +34,6 @@ const createSemester = async () => {
   }
 }
 
-const dateRules = computed(() => {
-  return [
-    (v) => (v ? true : `${t('$vuetify.semester_date_required')}`),
-  ];
-});
-
-
 </script>
 
 
@@ -52,8 +46,10 @@ const dateRules = computed(() => {
       <v-card :title="t('$vuetify.create_semester')" class="mx-auto px-6 py-8" width="380px">
         <v-card-text>
           <v-text-field v-model="semesterData.code" :label="t('$vuetify.semester_code')" />
-          <v-text-field v-model="semesterData.from" :rules="dateRules" :label="t('$vuetify.semester_start')" type="date" />
-          <v-text-field v-model="semesterData.until" :rules="dateRules" :label="t('$vuetify.semester_end')" type="date" />
+          <v-label>{{ t('$vuetify.semester_start') }}</v-label>
+          <LocaleAwareDatepicker v-model="semesterData.from" />
+          <v-label>{{ t('$vuetify.semester_end') }}</v-label>
+          <LocaleAwareDatepicker v-model="semesterData.until" />
         </v-card-text>
         <v-card-actions class="d-flex justify-center">
           <v-btn class="mr-15" variant="tonal" color="deep-purple-darken-1" @click="displayDialog=false">

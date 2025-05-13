@@ -31,6 +31,7 @@ import java.time.Instant
 class TemplateServiceTests(
     @MockBean val repository: TemplateRepository,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
     @MockBean val cmtRepository: CodeModuleTestRepository,
     @MockBean val authorizationService: AuthorizationService,
     @MockBean val userRepository: UserRepository,
@@ -45,6 +46,9 @@ class TemplateServiceTests(
     @MockBean val fileService: FileService,
     @MockBean val lessonRepository: LessonRepository,
     @Autowired val converterService: ConverterService,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val userService: UserService,
+
     service: TemplateService
 ): StringSpec({
 

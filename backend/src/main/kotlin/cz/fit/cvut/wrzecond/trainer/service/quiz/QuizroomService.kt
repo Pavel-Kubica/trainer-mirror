@@ -18,6 +18,8 @@ import jakarta.transaction.Transactional
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import cz.fit.cvut.wrzecond.trainer.service.LogService
+
 
 /**
  * Service class for managing quiz rooms.
@@ -33,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException
  * @property cuRepository The repository to manage `CourseUser` entities.
  * @property logRepository The repository to manage `Log` entities.
  * @property qiRepo The repository to manage `QuestionInstance` entities.
+ * @property logService The service to manage `Log` entities.
  */
 @Service
 class QuizroomService(override val repository: QuizroomRepo,
@@ -41,8 +44,9 @@ class QuizroomService(override val repository: QuizroomRepo,
                       private val quizroomStudentRepo: QuizroomStudentRepo, private val userRepo: UserRepository,
                       private val moduleRepo : ModuleRepository, private val lessonRepository: LessonRepository,
                       private val weekRepository: WeekRepository, private val cuRepository: CourseUserRepository,
-                      private val logRepository: LogRepository,private val qiRepo : QuestionInstanceRepo
-)
+                      private val logRepository: LogRepository,private val qiRepo : QuestionInstanceRepo,
+                      private val logService: LogService
+                      )
     : IServiceImplOld<Quizroom, QuizroomFindDTO, QuizroomGetDTO, QuizroomCreateDTO, QuizroomUpdateDTO>(repository, userRepo) {
 
     /**
@@ -202,7 +206,7 @@ class QuizroomService(override val repository: QuizroomRepo,
 
         val room = repository.saveAndFlush(dto.toEntity())
 
-        logRepository.saveAndFlush(createLogEntry(userDto, room, "create"))
+        logService.log(userDto, room, "create")
 
         return room.toGetDTO()
     }
@@ -227,7 +231,7 @@ class QuizroomService(override val repository: QuizroomRepo,
 
         val newRoom = repository.saveAndFlush(oldRoom.get().merge(dto))
 
-        logRepository.saveAndFlush(createLogEntry(userDto, newRoom, "update"))
+        logService.log(userDto, newRoom, "update")
 
         return newRoom.toGetDTO()
     }

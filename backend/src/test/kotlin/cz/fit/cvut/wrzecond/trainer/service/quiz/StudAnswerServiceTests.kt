@@ -56,7 +56,7 @@ class StudAnswerServiceTests (
 
     var course = Course("quizCourse", "qc",true, "", null, null, emptyList(), emptyList(), 1)
     var week = Week("week", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), course, emptyList(), 1)
-    val lesson = Lesson("lesson", false, 1, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), "quizLesson", LessonType.INDIVIDUAL_TASK, "", week, emptyList(), emptyList(),emptyList(),1)
+    val lesson = Lesson("lesson", false, 1, Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), "quizLesson", LessonType.INDIVIDUAL_TASK, "", null, week, emptyList(), emptyList(),emptyList(),1)
     course = course.copy(weeks = listOf(week))
     week = week.copy(lessons = listOf(lesson))
 

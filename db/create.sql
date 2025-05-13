@@ -108,6 +108,7 @@ create table lesson
     time_start  datetime(6)   null,
     type        tinyint       not null check (type between 0 and 5),
     week_id     int           not null,
+    reference_solution_accessible_from datetime(6) null,
     constraint FKsfd0d1wsp4owcj741pumf18ok
         foreign key (week_id) references week (id)
             on delete cascade
@@ -452,8 +453,8 @@ create table student_answer
 
 create table log
 (
-    entity_id  int          not null primary key,
-    id         int          not null,
+    id         int          not null primary key,
+    entity_id  int          not null,
     timestamp  timestamp(6) not null,
     client     varchar(255) not null,
     entity     varchar(255) not null,

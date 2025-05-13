@@ -48,7 +48,6 @@ function connect() {
         connected.value = true
         stompClient.value.subscribe("/messages/questions", q => {
           questionData.value = JSON.parse(q.body)
-          console.log(questionData.value.quizroomId)
 
           if(quizroomData.value.id === questionData.value.quizroomId){
 
@@ -62,7 +61,6 @@ function connect() {
               options.value = tmp
             }
             else{
-              console.log(JSON.parse(questionData.value.possibleAnswersData))
               options.value = JSON.parse(questionData.value.possibleAnswersData)
             }
 
@@ -122,7 +120,6 @@ onMounted(async () => {
                           .then((q) => {
                             questionData.value = q
 
-                            console.log(q)
                             if(q.questionType === '' || q.questionType === 'LEGACY'){
                               let tmp = []
                               tmp.push( JSON.parse(questionData.value.possibleAnswersData).option1,
@@ -133,7 +130,6 @@ onMounted(async () => {
                               options.value = tmp
                             }
                             else{
-                              console.log(JSON.parse(q.possibleAnswersData))
                               options.value = JSON.parse(q.possibleAnswersData)
                             }
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, inject, provide, watch } from 'vue'
+import {ref, onMounted, inject, provide, watch, computed} from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import { useLocale } from 'vuetify'
 import codeApi from '@/service/codeApi'
@@ -7,17 +7,60 @@ import CodeEditor from '@/components/custom/CodeEditor.vue'
 import {
   MODULE_EDIT_ITEMS, MODULE_EDIT_CODE_INFO, MODULE_EDIT_CODE_STUD,
   MODULE_EDIT_CODE_TEAC, MODULE_EDIT_CODE_ENV,
-  MODULE_EDIT_CODE_TEST, MODULE_FILE_CODE, DEFAULT_CODE_CONTENT
+  MODULE_EDIT_CODE_TEST, DEFAULT_CODE_FILENAME_C, DEFAULT_CODE_CONTENT_C
 } from "@/plugins/constants";
 import LoadingScreen from "@/components/custom/LoadingScreen.vue";
 import CodeEditModulePartInformation from '@/components/modules/code/edit/CodeEditModulePartInformation.vue'
 import CodeEditModulePartTest from '@/components/modules/code/edit/CodeEditModulePartTest.vue'
 import CodeEditModulePartFile from '@/components/modules/code/edit/CodeEditModulePartFile.vue'
 import CodeEditModulePartEnvelope from "@/components/modules/code/edit/CodeEditModulePartEnvelope.vue";
-
+import DeleteDialog from "@/components/custom/DeleteDialog.vue";
+import * as Nav from "@/service/nav";
+import {TEACHER_GUIDE_ID} from "@/resources/guides";
 const appState = inject('appState')
 const { t } = useLocale()
 const props = defineProps(['moduleId', 'readOnly'])
+
+const deleteDialog = ref(false)
+const testToDelete = ref(null)
+const fileToDelete = ref(null)
+const doDelete = ref(() => {
+  if (testToDelete.value)
+    deleteTest(testToDelete.value)
+  else if (fileToDelete.value)
+    deleteFile(fileToDelete.value)
+  deleteDialog.value = false;
+})
+provide('testToDelete', testToDelete)
+provide('fileToDelete', fileToDelete)
+provide('deleteDialog', deleteDialog)
+
+const deleteDialogTexts = computed(() => {
+  if (testToDelete.value)
+    return {
+      itemName: testToDelete.value.name,
+      title: '$vuetify.code_module.delete_test',
+      start: '$vuetify.code_module.delete_test_dialog_start',
+      middle: '$vuetify.code_module.delete_test_dialog_middle',
+      end: '$vuetify.irreversible_action',
+    }
+  else if (fileToDelete.value)
+    return {
+      itemName: fileToDelete.value.name,
+      title: "$vuetify.code_module.delete_file",
+      start: '$vuetify.code_module.delete_file_dialog_start',
+      middle: '$vuetify.code_module.delete_file_dialog_middle',
+      end: '$vuetify.irreversible_action',
+    }
+  else
+    return {
+      itemName: '',
+      title: '',
+      start: '',
+      middle: '',
+      end: '',
+    }
+})
 
 const reloadTestNames = () => {
   codeData.value.tests[codeData.value.tests.length - 1].name = t('$vuetify.code_module.new_test')
@@ -38,18 +81,22 @@ const reloadModuleTestTab = () => {
   codeData.value.tests.push({name: ""})
   reloadTestNames()
 }
+provide('reloadModuleTestTab', reloadModuleTestTab)
 const reloadModuleFileTab = () => {
-  codeData.value.files.push({
-    name: "",
-    codeLimit: 1024,
-    content: DEFAULT_CODE_CONTENT,
-    reference: '',
-    headerFile: false
-  })
-  reloadFileNames()
+  if (codeData.value.files[codeData.value.files.length - 1]?.name !== "") {
+    codeData.value.files.push({
+      name: "",
+      codeLimit: 1024,
+      content: DEFAULT_CODE_CONTENT_C,
+      reference: '',
+      headerFile: false
+    })
+    reloadFileNames()
+  }
 }
-const deleteTest = (test) => {
-  if (test.tmp) { // delete only local
+provide('reloadModuleFileTab', reloadModuleFileTab)
+const deleteTest = async (test, automatic = false) => {
+  if (!test.id || test.tmp) { // delete only local
     codeData.value.tests.splice(codeData.value.tests.indexOf(test), 1)
     codeData.value.tests.splice(codeData.value.tests.length - 1, 1) // remove "createTest"
     reloadModuleTestTab()
@@ -57,36 +104,45 @@ const deleteTest = (test) => {
   }
 
   // delete from api
-  codeApi.deleteTest(test.id)
+  return codeApi.deleteTest(test.id)
       .then(() => {
-        reload()
-        appState.value.notifications.push({
-          type: "success", title: t(`$vuetify.code_module.delete_test_title`),
-          text: t(`$vuetify.code_module.delete_test_text`),
-        })
+        if (!automatic) {
+          reload()
+          appState.value.notifications.push({
+            type: "success", title: t(`$vuetify.code_module.delete_test_title`),
+            text: t(`$vuetify.code_module.delete_test_text`),
+          })
+        }
       })
-      .catch((err) => { error.value = err.code })
 }
-const deleteFile = (file) => {
-  if (file.tmp) { // delete only local
+const deleteFile = async (file, automatic = false) => {
+  if (!file.id || file.tmp) { // delete only local
     codeData.value.files.splice(codeData.value.files.indexOf(file), 1)
     codeData.value.files.splice(codeData.value.files.length - 1, 1) // remove "createFile"
     reloadModuleFileTab()
     return
   }
 
+
   // delete from api
-  codeApi.deleteFile(file.id)
+  return codeApi.deleteFile(file.id)
       .then(() => {
-        reload()
-        appState.value.notifications.push({
-          type: "success", title: t(`$vuetify.code_module.delete_file_title`),
-          text: t(`$vuetify.code_module.delete_file_text`),
-        })
+        if (!automatic) {
+          reload()
+          appState.value.notifications.push({
+            type: "success", title: t(`$vuetify.code_module.delete_file_title`),
+            text: t(`$vuetify.code_module.delete_file_text`),
+          })
+        }
       })
       .catch((err) => { error.value = err.code })
 }
+
+provide('deleteTest', deleteTest);
+provide('deleteFile', deleteFile);
+
 const addTest = (test) => {
+  if (!test.parameter || !test.name || !test.description) return
   test.id = codeData.value.tests.length
   test.tmp = true
   reloadModuleTestTab()
@@ -110,6 +166,8 @@ const moduleEditTabList = inject('moduleEditTabList')
 const createEditCallback  = inject('createEditCallback', () => {})
 
 createEditCallback.value = (module) => {
+  // Arguable UX, if user was creating a test and didn't add it, we do it automatically
+  addTest(codeData.value.tests[codeData.value.tests.length - 1]) // it's fine if the test is not addable
   codeData.value.tests.splice(codeData.value.tests.length - 1, 1) // remove "createTest"
   codeData.value.files.splice(codeData.value.files.length - 1, 1) // remove "createFile"
   const promise = props.moduleId ? codeApi.patchCode(props.moduleId, codeData.value) :
@@ -128,7 +186,7 @@ watch(moduleEditItem, (now, old) => {
 })
 
 const reload = async () => {
-  moduleEditTabList.value[MODULE_EDIT_CODE_INFO] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_INFO]
+  moduleEditTabList.value[MODULE_EDIT_CODE_INFO] = {...MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_INFO], guideLink: new Nav.GuideMarkdown(TEACHER_GUIDE_ID, {id: 3}).routerPath()}
   moduleEditTabList.value[MODULE_EDIT_CODE_TEST] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_TEST]
   moduleEditTabList.value[MODULE_EDIT_CODE_STUD] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_STUD]
   moduleEditTabList.value[MODULE_EDIT_CODE_ENV] = MODULE_EDIT_ITEMS[MODULE_EDIT_CODE_ENV]
@@ -147,7 +205,7 @@ const reload = async () => {
   } else {
     originalCodeData.value = null
     codeData.value = {
-      codeType: 'TEST_ASSERT',
+      codeType: 'SHOWCASE',
       interactionType: 'EDITOR',
       codeHidden: '',
       fileLimit: 10240,
@@ -159,11 +217,11 @@ const reload = async () => {
       assignment: '',
       tests: [],
       files: [{
-        name: MODULE_FILE_CODE,
+        name: DEFAULT_CODE_FILENAME_C,
         tmp: true,
         id: -1,
         codeLimit: 1024,
-        content: DEFAULT_CODE_CONTENT,
+        content: DEFAULT_CODE_CONTENT_C,
         reference: '',
         headerFile: false
       }],
@@ -172,13 +230,14 @@ const reload = async () => {
     reloadModuleFileTab()
   }
 }
+
 onMounted(async () => {
   onBeforeRouteLeave((to, from, next) => {
-    if (JSON.stringify(originalCodeData.value) === JSON.stringify(codeData.value)) { // ok
+    const newCodeDataComparable = Object.fromEntries(Object.entries(codeData.value).filter(([key]) => key !== 'templateEnvelope'))
+    if (props.readOnly || JSON.stringify(originalCodeData.value) === JSON.stringify(newCodeDataComparable)) { // ok
       next()
       return
     }
-    appState.value.leftDrawer = true
     routerNext.value = next
     unsavedChangesDialog.value = true
   })
@@ -187,15 +246,21 @@ onMounted(async () => {
 </script>
 
 <template>
+  <DeleteDialog :item-name="deleteDialogTexts.itemName"
+                :title="deleteDialogTexts.title"
+                :text-start="deleteDialogTexts.start" :text-before-line-break="deleteDialogTexts.middle" :text-second-line="deleteDialogTexts.end"
+                :on-cancel="() => deleteDialog = false"
+                :on-confirm="doDelete"
+                :text-confirm-button="'$vuetify.action_delete'" />
   <LoadingScreen :items="codeData" :error="error">
     <template #items>
       <CodeEditModulePartInformation v-if="moduleEditItem.id === MODULE_EDIT_CODE_INFO" :read-only="props.readOnly" :module-id="moduleId" :add-file="addFile" />
       <CodeEditModulePartTest v-else-if="moduleEditItem.id >= 100 && moduleEditItem.id < 1000" :test-id="moduleEditItem.id - 100"
-                              :add-test="addTest" :delete-test="deleteTest" :read-only="props.readOnly" />
+                              :add-test="addTest" :read-only="props.readOnly" />
       <CodeEditModulePartFile v-else-if="moduleEditItem.id >= 1000" :file-id="moduleEditItem.id - 1000"
-                              :add-file="addFile" :delete-file="deleteFile" :read-only="props.readOnly" />
-      <CodeEditModulePartEnvelope v-if="moduleEditItem.id === MODULE_EDIT_CODE_ENV" />
-      <CodeEditor v-if="moduleEditItem.id === MODULE_EDIT_CODE_TEAC" class="mb-4" code-key="codeHidden" />
+                              :add-file="addFile" :read-only="props.readOnly" />
+      <CodeEditModulePartEnvelope v-if="moduleEditItem.id === MODULE_EDIT_CODE_ENV" :read-only="props.readOnly" />
+      <CodeEditor v-if="moduleEditItem.id === MODULE_EDIT_CODE_TEAC" class="mb-4" code-key="codeHidden" :disabled="readOnly" />
     </template>
   </LoadingScreen>
 </template>

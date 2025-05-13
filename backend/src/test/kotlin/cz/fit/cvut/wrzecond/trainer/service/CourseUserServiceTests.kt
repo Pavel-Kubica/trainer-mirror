@@ -29,6 +29,7 @@ class CourseUserServiceTests(
     @MockBean val courseUserRepository: CourseUserRepository,
     @MockBean val roleRepository: RoleRepository,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
     @MockBean val userRepository: UserRepository,
     @MockBean val authorizationService: AuthorizationService,
     @MockBean val moduleRepository: ModuleRepository,
@@ -44,6 +45,9 @@ class CourseUserServiceTests(
     @MockBean val subjectRepository: SubjectRepository,
     @Autowired val converterService: ConverterService,
     @MockBean val fileService: FileService,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val userService: UserService,
+
     service: CourseUserService
 ): StringSpec({
     val userDto1 = UserFindDTO(1, "testuser", "Test user")
@@ -74,7 +78,7 @@ class CourseUserServiceTests(
 
     val sdto1 = SubjectFindDTO(subject.id, subject.name, subject.code)
     val smdto1 = SemesterFindDTO(semester.id, semester.code, semester.from, semester.until)
-    val dto1 = CourseFindDTO(course.id, course.name, course.shortName, sdto1, smdto1, 0, 0, null)
+    val dto1 = CourseFindDTO(course.id, course.name, course.shortName, sdto1, smdto1, null)
     val gdto1 = CourseGetDTO(course.id, course.name, course.shortName, sdto1, smdto1, RoleLevel.STUDENT, course.public,null, emptyList())
 
     val cudto1 = CourseUserReadDTO(user1.id, user1.username, user1.name, cu1.role.level, 0)

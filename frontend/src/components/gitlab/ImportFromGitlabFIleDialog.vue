@@ -58,7 +58,6 @@ const addToModule = async () => {
           moduleDataInject.value.assignment = result.content
         }
         if (value === t("$vuetify.import_gitlab_file_list_type_default_code")) {
-          console.log(result);
           codeDataInject.value.files[
             codeDataInject.value.files.length - 1
           ].content = result.content;

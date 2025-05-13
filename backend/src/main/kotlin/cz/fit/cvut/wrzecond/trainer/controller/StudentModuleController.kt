@@ -151,15 +151,15 @@ class StudentModuleController(private val service: StudentModuleService, userSer
      * @param request The HTTP request object containing request details.
      * @param response The HTTP response object for sending response details.
      * @param loginSecret The cookie value used for user authentication.
-     * @return A StudentRequestDTO object.
+     * @return List<StudentRequestDTO>
      */
     @GetMapping("/requests/me")
-    fun getStudentModuleRequest(@PathVariable lessonId: Int, @PathVariable moduleId: Int,
+    fun getStudentModuleRequests(@PathVariable lessonId: Int, @PathVariable moduleId: Int,
                                 request: HttpServletRequest, response: HttpServletResponse,
                                 @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String)
         = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
             setCookie(loginSecret, response)
-            service.getStudentModuleRequest(lessonId, moduleId, user)
+            service.getStudentModuleRequests(lessonId, moduleId, user)
         }
 
     /**
@@ -174,13 +174,13 @@ class StudentModuleController(private val service: StudentModuleService, userSer
      * @return A StudentRequestDTO object.
      */
     @GetMapping("/requests/users/{userId}")
-    fun getStudentModuleRequest(@PathVariable lessonId: Int, @PathVariable moduleId: Int,
+    fun getStudentModuleRequests(@PathVariable lessonId: Int, @PathVariable moduleId: Int,
                                 @PathVariable userId: Int,
                                 request: HttpServletRequest, response: HttpServletResponse,
                                 @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String)
         = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
             setCookie(loginSecret, response)
-            service.getStudentModuleRequest(lessonId, moduleId, userId, user)
+            service.getStudentModuleRequests(lessonId, moduleId, userId, user)
         }
 
     /**

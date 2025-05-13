@@ -20,8 +20,10 @@ export const useUserStore = defineStore('user', {
             hiddenWeeks: {},
             hiddenSubjects: {},
             hiddenScoringRules: {},
+            unfoldedLessons: [],
             lessonEditItemIds: {},
             moduleEditItemIds: {},
+            requestText: '',
             locale: navigator.language === 'cs-CZ' ? 'customCs' : 'customEn'
         }
     },
@@ -44,7 +46,7 @@ export const useUserStore = defineStore('user', {
             this.gitlabToken = token
         },
         swapIdentity() {
-            authApi.swapIdentity().then(r => console.log(r))
+            authApi.swapIdentity()
             if (this.user.username === this.realUser.username)
                 this.user = { id: 1, username: 'test01', name: 'Testovací student', isTeacher: [], isGuarantor: [], isAdmin: false, testUser: true }
             else {
@@ -65,7 +67,7 @@ export const useUserStore = defineStore('user', {
         },
         logout() {
             if (this.user.username === 'test01')
-                authApi.swapIdentity().then(r => console.log(r))
+                authApi.swapIdentity()
             this.setUser(null)
         }
     },

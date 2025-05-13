@@ -10,12 +10,17 @@ import java.sql.Timestamp
  * @property hidden is lesson hidden for students (student always sees false)
  * @property order lesson order in list
  * @property lockCode code used for unlocking modules in lesson
+ * @property referenceSolutionAccessibleFrom time after which will be reference code accessible
  * @property timeLimit time limit for user to solve lesson in time
  * @property progress student progress in lesson
  */
-data class LessonFindDTO(override val id: Int, val name: String, val hidden: Boolean,
-                         val order: Int, val type: LessonType, val lockCode: String?, val timeLimit: Timestamp?,
-                         val progress: Int?, val progressRules: Int?) : IFindDTO
+data class LessonFindDTO(
+    override val id: Int, val name: String, val hidden: Boolean,
+    val order: Int, val type: LessonType, val lockCode: String?,
+    val referenceSolutionAccessibleFrom: Timestamp?,
+    val timeLimit: Timestamp?,
+    val progress: Int?, val progressRules: Int?
+) : IFindDTO
 
 /**
  * Data transfer object for lesson list
@@ -25,17 +30,21 @@ data class LessonFindDTO(override val id: Int, val name: String, val hidden: Boo
  * @property hidden is lesson hidden from students
  * @property type lesson type
  * @property lockCode code used for unlocking modules in lesson
+ * @property referenceSolutionAccessibleFrom time after which will be reference code accessible
  * @property timeStart when does lesson start?
  * @property timeLimit time limit for user to solve lesson in time
  * @property description lesson description (summary, how to get points)
  * @property modules lesson modules
  * @property scoringRules lesson scoring rules
  */
-data class LessonGetDTO(override val id: Int, val week: WeekFindDTO, val name: String,
-                        val hidden: Boolean, val type: LessonType, val lockCode: String?,
-                        val timeStart: Timestamp?, val timeLimit: Timestamp?,
-                        val description: String, val modules: List<ModuleFindDTO>,
-                        val scoringRules: List<ScoringRuleGetDTO>) : IGetDTO
+data class LessonGetDTO(
+    override val id: Int, val week: WeekFindDTO, val name: String,
+    val hidden: Boolean, val type: LessonType, val lockCode: String?,
+    val referenceSolutionAccessibleFrom: Timestamp?,
+    val timeStart: Timestamp?, val timeLimit: Timestamp?,
+    val description: String, val modules: List<ModuleFindDTO>,
+    val scoringRules: List<ScoringRuleGetDTO>
+) : IGetDTO
 
 /**
  * Data transfer object for lesson creation
@@ -45,13 +54,23 @@ data class LessonGetDTO(override val id: Int, val week: WeekFindDTO, val name: S
  * @property order lesson order in list
  * @property type lesson type
  * @property lockCode code used for unlocking modules in lesson
+ * @property referenceSolutionAccessibleFrom time after which will be reference code accessible
  * @property timeStart when does lesson start
  * @property timeLimit time limit for user to solve lesson in time
  * @property description lesson description
  */
-data class LessonCreateDTO(val weekId: Int, val name: String, val hidden: Boolean, val order: Int,
-            val type: LessonType, val lockCode: String?, val timeStart: Timestamp?,
-            val timeLimit: Timestamp?, val description: String) : ICreateDTO
+data class LessonCreateDTO(
+    val weekId: Int,
+    val name: String,
+    val hidden: Boolean,
+    val order: Int,
+    val type: LessonType,
+    val lockCode: String?,
+    val referenceSolutionAccessibleFrom: Timestamp?,
+    val timeStart: Timestamp?,
+    val timeLimit: Timestamp?,
+    val description: String
+) : ICreateDTO
 
 /**
  * Data transfer object for lesson editing
@@ -60,12 +79,22 @@ data class LessonCreateDTO(val weekId: Int, val name: String, val hidden: Boolea
  * @property order lesson order in list
  * @property type lesson type
  * @property lockCode code used for unlocking modules in lesson
+ * @property referenceSolutionAccessibleFrom time after which will be reference code accessible
  * @property timeStart when does lesson start
  * @property timeLimit time limit for user to solve lesson in time
  * @property description lesson description
  */
-data class LessonUpdateDTO(val name: String?, val hidden: Boolean?, val order: Int?, val type: LessonType?,
-        val lockCode: String?, val timeStart: Timestamp?, val timeLimit: Timestamp?, val description: String?) : IUpdateDTO
+data class LessonUpdateDTO(
+    val name: String?,
+    val hidden: Boolean?,
+    val order: Int?,
+    val type: LessonType?,
+    val lockCode: String?,
+    val referenceSolutionAccessibleFrom: Timestamp?,
+    val timeStart: Timestamp?,
+    val timeLimit: Timestamp?,
+    val description: String?
+) : IUpdateDTO
 
 /**
  * Data transfer object for lesson detail in teacher view
@@ -82,8 +111,10 @@ data class LessonUserReadDTO(val lesson: LessonGetDTO, val user: UserFindDTO)
  * @property modules modules list
  * @property users user modules list
  */
-data class LessonUserListDTO(val id: Int, val course: CourseFindDTO, val name: String,
-                             val modules: List<ModuleFindDTO>, val users: List<ModuleUserListDTO>)
+data class LessonUserListDTO(
+    val id: Int, val course: CourseFindDTO, val name: String,
+    val modules: List<ModuleFindDTO>, val users: List<ModuleUserListDTO>
+)
 
 /**
  * Data transfer object for LessonModule user list
@@ -91,7 +122,11 @@ data class LessonUserListDTO(val id: Int, val course: CourseFindDTO, val name: S
  * @property module module information
  * @property users user module list
  */
-data class LessonModuleUserListDTO(val lesson: LessonGetDTO, val module: ModuleFindDTO, val users: List<ModuleUserSingleListDTO>)
+data class LessonModuleUserListDTO(
+    val lesson: LessonGetDTO,
+    val module: ModuleFindDTO,
+    val users: List<ModuleUserSingleListDTO>
+)
 
 /**
  * Data transfer object used for unlocking lesson
@@ -105,3 +140,9 @@ data class LessonUnlockDTO(val code: String)
  * @property name lesson name
  */
 data class LessonNotificationDTO(val id: Int, val name: String)
+
+/**
+ * Data transfer object for reordering modules in a lesson
+ * @property moduleIds ids of modules in the new desired order
+ */
+data class LessonModuleOrderDTO(val moduleIds: List<Int>)

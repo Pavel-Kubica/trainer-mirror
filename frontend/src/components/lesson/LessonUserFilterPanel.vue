@@ -16,7 +16,7 @@ const userStore = useUserStore()
     <v-tooltip activator="parent" location="top">{{ t('$vuetify.lesson_user_list_filter_requests') }}</v-tooltip>
   </span>
   <span>
-    <v-switch v-model="userStore.allowedShowFilter" density="compact" color="primary" label="👁" hide-details />
+    <v-checkbox-btn v-model="userStore.allowedShowFilter" color="primary" label="👁" hide-details />
     <v-tooltip activator="parent" location="top">{{ t('$vuetify.lesson_user_list_filter_allowed_show') }}</v-tooltip>
   </span>
 </template>

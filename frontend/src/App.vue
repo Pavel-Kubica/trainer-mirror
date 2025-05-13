@@ -16,7 +16,6 @@ const appState = ref({
   notifications: [],
 })
 
-console.log("Init app")
 const store = useUserStore()
 
 if (isHalloween && !store.originalMode) {
@@ -48,16 +47,11 @@ provide('appState', appState)
 
 onMounted(async () => {
   if (store.user !== null) {
-    console.log("store.user - ", store.user)
-    await userApi.getUserById(store.user.id).then((result) => {
-      store.realUser.isAdmin = result.isAdmin
-    })
-    await subjectApi.listMeGuarantor().then((result) => {
-      store.realUser.isGuarantor = result
-    })
-    await userApi.getIsTeacher().then((result) => {
-      console.log("Is teacher: " + result)
-      store.realUser.isTeacher = result
+    await Promise.all([userApi.getUserById(store.user.id), subjectApi.listMeGuarantor(), userApi.getIsTeacher()]).then((result) => {
+      const [user, isGuarantor, isTeacher] = result;
+      store.realUser.isAdmin = user.isAdmin;
+      store.realUser.isGuarantor = isGuarantor;
+      store.realUser.isTeacher = isTeacher;
     })
   }
   if (store.isLoggedIn && store.realUser.username === store.user.username) {

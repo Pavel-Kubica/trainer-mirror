@@ -85,7 +85,7 @@ class UsersController(override val service: UserService)
                   @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String) =
             authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
                 setCookie(loginSecret, response)
-                service.isTeacher(user)
+                service.taughtCourses(user)
             }
 
     @PatchMapping("/{id}/gitlabToken")

@@ -13,6 +13,7 @@ import org.mockito.Answers
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpStatus
@@ -26,11 +27,17 @@ class WeekServiceTests(
     @MockBean val lessonRepository: LessonRepository,
     @MockBean val courseRepository: CourseRepository,
     @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val lessonModuleService: LessonModuleService,
+    @MockBean val lessonService: LessonService,
     @MockBean val userRepository: UserRepository,
     @MockBean val authorizationService: AuthorizationService,
     @MockBean(answer = Answers.CALLS_REAL_METHODS) val converterService: ConverterService,
     @MockBean val fileService: FileService,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
+    @MockBean val moduleRepository: ModuleRepository,
+    @MockBean val userService: UserService,
+
     val service: WeekService
 ): StringSpec({
 
@@ -58,17 +65,17 @@ class WeekServiceTests(
     val weekDummy = Week("First week", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()),
         course, emptyList(), 1)
     val lesson1Dummy = Lesson("Compilation", false, 1, null, null, "Assignment",
-        LessonType.TUTORIAL_PREPARATION, null, weekDummy, emptyList(), emptyList(),emptyList(),1)
+        LessonType.TUTORIAL_PREPARATION, null, null, weekDummy, emptyList(), emptyList(),emptyList(),1)
     val lesson2Dummy = Lesson("First program", true, 2, Timestamp.from(Instant.now()),
         Timestamp.from(Instant.now().plusMillis(24 * 3600 * 1000)), "Another description",
-        LessonType.TUTORIAL, "secret", weekDummy, emptyList(), emptyList(),emptyList(),2)
+        LessonType.TUTORIAL, "secret", null, weekDummy, emptyList(), emptyList(),emptyList(),2)
     val week = weekDummy.copy(lessons = listOf(lesson1Dummy, lesson2Dummy))
     val lesson1 = lesson1Dummy.copy(week = week)
     val lesson2 = lesson2Dummy.copy(week = week)
 
     val sdto1 = SubjectFindDTO(subject1.id, subject1.name, subject1.code)
     val smdto1 = SemesterFindDTO(semester.id, semester.code, semester.from, semester.until)
-    val courseDto = CourseFindDTO(course.id, course.name, course.shortName, sdto1, smdto1, 0, 0, null)
+    val courseDto = CourseFindDTO(course.id, course.name, course.shortName, sdto1, smdto1, null)
     val weekDto = WeekFindDTO(week.id, week.name, week.from, week.until, courseDto)
 
     beforeTest { // Reset counters
@@ -78,9 +85,9 @@ class WeekServiceTests(
     }
 
     val fdto1 = LessonFindDTO(lesson1.id, lesson1.name, lesson1.hidden, lesson1.order, lesson1.type,
-        lesson1.lockCode, lesson1.timeEnd, 0, 0)
+        lesson1.lockCode, lesson1.referenceSolutionAccessibleFrom, lesson1.timeEnd, 0, 0)
     val fdto2 = LessonFindDTO(lesson2.id, lesson2.name, lesson2.hidden, lesson2.order, lesson2.type,
-        lesson2.lockCode, lesson2.timeEnd, 0,0)
+        lesson2.lockCode, lesson1.referenceSolutionAccessibleFrom, lesson2.timeEnd, 0,0)
     
     val weekgdto = WeekGetDTO(week.id, week.name, week.from, week.until, courseDto, listOf(fdto1))
     val cdto = WeekCreateDTO(week.name ?: "", week.from, week.until, week.course.id)
@@ -183,13 +190,13 @@ class WeekServiceTests(
     "cloneWeek" {
         given(courseRepository.getReferenceById(course.id)).willReturn(course)
         given(weekRepository.getReferenceById(week.id)).willReturn(week)
-        given(weekRepository.saveAndFlush(week.copy(lessons = emptyList(), id = 0))).willReturn(week)
+        given(weekRepository.saveAndFlush(any<Week>())).willReturn(week)
 
-        service.cloneWeek(lesson1.id, course.id, userAuthDto) shouldBe weekgdto.copy(lessons = listOf(fdto1, fdto2))
+        service.cloneWeek(week.id, course.id, userAuthDto) shouldBe weekgdto.copy(lessons = listOf(fdto1, fdto2))
 
         verify(courseRepository).getReferenceById(course.id)
         verify(weekRepository).getReferenceById(week.id)
-        verify(weekRepository).saveAndFlush(week.copy(lessons = emptyList(), id = 0))
+        verify(weekRepository).saveAndFlush(week.copy(name = week.name + " (Copy)", lessons = emptyList(), id = 0))
     }
 
     "cloneWeek_403" {

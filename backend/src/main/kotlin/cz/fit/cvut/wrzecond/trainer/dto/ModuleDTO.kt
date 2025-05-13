@@ -126,13 +126,13 @@ data class ModuleUserSingleListDTO(val id: Int, val username: String, val name: 
 /**
  * Data transfer object for single module – user relation
  * @property id module id
- * @property requestType active request on the module (null if none)
+ * @property studentRequest first unsatisfied request on the module (or null if none)
  * @property allowedShow has student allowed anonymized publication?
  * @property progress progress in module
  * @property completedEarly has student completed module early?
  * @property completed has student completed the module? (if yes, timestamp when)
  */
-data class ModuleUserDTO(val id: Int, val requestType: StudentModuleRequestType?, val allowedShow: Boolean,
+data class ModuleUserDTO(val id: Int, val studentRequest: StudentRequestDTO?, val allowedShow: Boolean,
                          val progress: Int?, val completedEarly: Boolean, val completed: Timestamp?)
 
 /**
@@ -147,8 +147,8 @@ data class ModuleNotificationDTO(val id: Int, val name: String)
  * @property requestType does student need help / did he submit for evaluation?
  * @property requestText student request text
  */
-data class StudentRequestDTO(val requestId: Int?, val requestType: StudentModuleRequestType?, val requestText: String?,
-                             val satisfied: Boolean?, val teacherComment: TeacherCommentDTO?)
+data class StudentRequestDTO(val requestId: Int?, val requestedOn: Timestamp?, val requestType: StudentModuleRequestType?, val requestText: String?,
+                             val satisfied: Boolean?, val satisfiedOn: Timestamp?, val teacherComment: TeacherCommentDTO?)
 data class TeacherCommentDTO(val name: String?, val text: String?)
 
 data class ModuleFindTableDTO(val id: Int, val name: String, val subjects: List<SubjectFindDTO>,

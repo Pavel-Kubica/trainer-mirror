@@ -20,7 +20,7 @@ const emit = defineEmits(['deleteButtonClicked'])
           {{ t('$vuetify.dialog_close') }}
         </v-btn>
         <v-btn variant="tonal" color="red" class="ml-13" @click="emit('deleteButtonClicked')">
-          {{ t('$vuetify.dialog_delete') }}
+          {{ t('$vuetify.action_delete') }}
         </v-btn>
       </v-card-actions>
     </v-card>

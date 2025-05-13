@@ -5,7 +5,7 @@ import {lessonModuleApi} from "@/service/api";
 import {useLocale} from "vuetify";
 import {useUserStore} from "@/plugins/store";
 
-const {t} = useLocale()
+const {current, t} = useLocale()
 
 const userStore = useUserStore()
 const props = defineProps(['lesson'])
@@ -26,12 +26,19 @@ onMounted(() => {
       {{ lesson.name }}
     </td>
     <td style="width: 20%">
-      {{ lesson.week.course.shortName }}
+      {{ lesson.week.course.name }}
     </td>
-    <td style="width: 40%; text-align: center">
-      <router-link v-if="userStore.isLoggedIn && !userStore.isAnyTeacher &&
-                     moduleWithActiveQuizroom && JSON.stringify(moduleWithActiveQuizroom) !== '{}'"
-                   :to="new Nav.ModuleDetail(lesson, moduleWithActiveQuizroom).routerPath()">
+    <td>
+      <strong class="text-center">
+        {{ new Date(props.lesson.timeStart).toLocaleDateString(current === 'customCs' ? 'cs' : 'en') }}
+        –
+        {{ new Date(props.lesson.timeLimit).toLocaleDateString(current === 'customCs' ? 'cs' : 'en') }}
+      </strong>
+    </td>
+    <td v-if="userStore.isLoggedIn && !userStore.isAnyTeacher &&
+          moduleWithActiveQuizroom && JSON.stringify(moduleWithActiveQuizroom) !== '{}'"
+        style="width: 25%; text-align: center">
+      <router-link :to="new Nav.ModuleDetail(lesson, moduleWithActiveQuizroom).routerPath()">
         <v-btn variant="outlined" :color="userStore.darkMode ? 'red-lighten-2' : 'red-darken-2'">
           {{ t('$vuetify.active_quiz') }}
           <template #append>

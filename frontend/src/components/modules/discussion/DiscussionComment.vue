@@ -2,10 +2,10 @@
 
 import {inject, provide, ref, watch} from "vue";
 import {useUserStore} from "@/plugins/store";
-import CommentDetailDeleteDialog from "@/components/modules/discussion/CommentDetailDeleteDialog.vue";
 import {discussionApi} from "@/service/api";
 import {getErrorMessage} from "@/plugins/constants";
 import {useLocale} from "vuetify";
+import DeleteDialog from "@/components/custom/DeleteDialog.vue";
 
 const appState = inject('appState')
 const {t} = useLocale()
@@ -13,11 +13,11 @@ const userStore = useUserStore()
 
 const props = defineProps(['comment', 'lang', 'moduleId'])
 const loadComments = inject('loadComments')
-const displayDeleteDialog = ref(false)
+const commentDeleteDialog = ref(false)
 const displayRedactDialog = ref(false)
 const commentData = ref(null)
 
-provide('displayDeleteDialog', displayDeleteDialog)
+provide('deleteDialog', commentDeleteDialog)
 
 commentData.value = {
   content: props.comment.content,
@@ -25,16 +25,16 @@ commentData.value = {
 }
 
 const deleteComment = async () => {
-  displayDeleteDialog.value = false
+  commentDeleteDialog.value = false
   try {
     await discussionApi.deleteComment(props.moduleId, props.comment.id)
     appState.value.notifications.push({
-      type: "success", title: t('$vuetify.module_delete_title'), text: t('$vuetify.module_delete_comment_success')
+      type: "success", title: t('$vuetify.module_delete_comment_title'), text: t('$vuetify.module_delete_comment_success')
     })
     await loadComments()
   } catch (err) {
     appState.value.notifications.push({
-      type: "error", title: t('$vuetify.module_delete_title'),
+      type: "error", title: t('$vuetify.module_delete_comment_title'),
       text: getErrorMessage(t, err.code)
     })
   }
@@ -65,7 +65,14 @@ watch(displayRedactDialog, (newValue) => {
 </script>
 
 <template>
-  <CommentDetailDeleteDialog :comment="comment" @delete-button-clicked="deleteComment" />
+  <DeleteDialog title="$vuetify.module_delete_comment_title"
+                text-start="$vuetify.module_delete_comment_text"
+                item-name=""
+                text-before-line-break=""
+                text-second-line="$vuetify.irreversible_action"
+                :on-cancel="() => commentDeleteDialog = false"
+                :on-confirm="() => deleteComment()"
+                text-confirm-button="$vuetify.action_delete" />
   <div class="comment-div">
     <div class="d-flex">
       <h4>
@@ -82,7 +89,7 @@ watch(displayRedactDialog, (newValue) => {
       <v-btn v-if="(userStore.user.username === comment.author.username) && displayRedactDialog === false" size="small"
              variant="text" color="red"
              icon="mdi-trash-can"
-             @click="displayDeleteDialog = true" />
+             @click="commentDeleteDialog = true" />
     </div>
     <span v-if="displayRedactDialog === false" class="comment-text">{{ comment.content }}</span>
     <v-textarea v-if="displayRedactDialog === true" id="input_comment"
@@ -106,7 +113,7 @@ watch(displayRedactDialog, (newValue) => {
         hour: 'numeric',
         minute: 'numeric'
       })
-    }}<i>{{ comment.redacted === true ? " (redacted)" : "" }}</i></span>
+    }}<i>{{ comment.redacted === true ? " (edited)" : "" }}</i></span>
   </div>
 </template>
 

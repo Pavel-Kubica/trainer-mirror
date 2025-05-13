@@ -29,17 +29,12 @@ const selectItem = (item) => {
 <template>
   <v-navigation-drawer v-if="moduleData" v-model="appState.leftDrawer">
     <v-list v-model="moduleEditItem" density="comfortable">
-      <v-list-item :to="new Nav.LessonEdit(lesson).routerPath()">
+      <v-list-item :to="module ? new Nav.ModuleDetail(lesson, module).routerPath() : new Nav.LessonDetail(lesson).routerPath()">
         <template #prepend>
           <v-icon size="small" icon="mdi-arrow-left" />
         </template>
         <template #title>
-          <strong v-if="true">{{ t(`$vuetify.module_menu_title_${module ? 'edit' : 'create'}`) }}</strong>
-          <strong v-else>{{ t(`$vuetify.template_menu_title_${module ? 'edit' : 'create'}`) }}</strong>
-        </template>
-        <template v-if="module" #append>
-          <TooltipIconButton icon="mdi-eye" tooltip="$vuetify.lesson_menu_detail" class="ms-4" density="compact"
-                             icon-size="18" :to="new Nav.ModuleDetail(lesson, module).routerPath()" />
+          <strong>{{ lesson.name }}</strong>
         </template>
       </v-list-item>
 
@@ -50,6 +45,9 @@ const selectItem = (item) => {
           </template>
           <template v-if="item.tabList?.length" #append>
             <v-btn density="compact" variant="text" :icon="!collapsed[item.id] ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+          </template>
+          <template v-else-if="item.guideLink" #append>
+            <TooltipIconButton :to="item.guideLink" target="_blank" density="compact" icon="mdi-information-outline" :tooltip="t('$vuetify.module_edit_guide_link')" @click.stop="" />
           </template>
         </v-list-item>
 

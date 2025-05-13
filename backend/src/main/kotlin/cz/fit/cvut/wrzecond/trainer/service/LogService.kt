@@ -12,6 +12,8 @@ import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import org.springframework.beans.factory.annotation.Value
+import cz.fit.cvut.wrzecond.trainer.entity.IEntity
 
 /**
  * Service class for managing log operations.
@@ -20,7 +22,9 @@ import java.time.format.DateTimeFormatter
  * @property userRepository The repository interface for handling User entities.
  */
 @Service
-class LogService (override val repository: LogRepository, userRepository: UserRepository)
+class LogService (  override val repository: LogRepository,
+                    userRepository: UserRepository,
+                    @Value("\${logging.enabled:false}") private val loggingEnabled: Boolean)
     : IServiceImpl<Log, LogFindDTO, IGetDTO, ICreateDTO, IUpdateDTO>(repository, userRepository){
 
     /**
@@ -61,5 +65,18 @@ class LogService (override val repository: LogRepository, userRepository: UserRe
             return repository.deleteAllByTimestampIsLessThan(timestamp)
         }
         throw ResponseStatusException(HttpStatus.FORBIDDEN)
+    }
+
+    /**
+     * Records a log entry only if loggingEnabled == true.
+     * @param userDto logged-in user
+     * @param target any entity implementing IEntity
+     * @param action action, e.g., "create", "update", ...
+     */
+    fun log(userDto: UserAuthenticateDto?, target: IEntity, action: String) {
+        if (!loggingEnabled) return
+
+        val logEntry = createLogEntry(userDto, target, action)
+        repository.saveAndFlush(logEntry)
     }
 }

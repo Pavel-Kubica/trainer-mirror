@@ -253,7 +253,6 @@ onMounted( async () => {
   selectedTab.value = TAB_MODULE_DETAIL
   if(userStore.isAnyTeacher)
   {
-     console.log("lesson quiz - ", props.lesson)
      await lessonApi.lessonDetail(props.lesson)
         .then((lessonData) => {
           if (userStore.isTeacher(lessonData.week.course))
@@ -637,24 +636,24 @@ onMounted( async () => {
                   <div v-if="quizQuestionsData[index].correctAnswerData && quizQuestionsData[index].possibleAnswersData && quizQuestionsData[index].possibleOptions">
                     <div v-for="(option, oIndex) in quizQuestionsData[index].possibleOptions" :key="option" class="mb-4">
                       <v-row v-if="quizQuestionsData[index].correctAnswerData.includes(option)" class="mt-16 align-center" style="background-color: green">
-                        <v-icon v-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" size="25" class="ml-8" color="black">
+                        <v-icon v-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" size="25" class="ml-8">
                           mdi-radiobox-marked
                         </v-icon>
-                        <v-icon v-else size="25" class="ml-8" color="black">
+                        <v-icon v-else size="25" class="ml-8">
                           mdi-radiobox-blank
                         </v-icon>
                         <MdPreview v-model="quizQuestionsData[index].possibleOptions[oIndex]" language="en-US" preview-theme="github"
                                    :theme="userStore.darkMode ? 'dark' : 'light'" :no-iconfont="true" :read-only="true" class="px-4 pb-2 pt-3 ml-8 text-left" style="background-color: green; width: 85%" />
-                        <v-icon size="25" class="ml-8" color="black">
+                        <v-icon size="25" class="ml-8">
                           mdi-checkbox-marked-circle
                         </v-icon>
                       </v-row>
 
                       <v-row v-else-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" class="mt-16 align-center " style="background-color: red">
-                        <v-icon v-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" size="25" class="ml-8" color="black">
+                        <v-icon v-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" size="25" class="ml-8">
                           mdi-radiobox-marked
                         </v-icon>
-                        <v-icon v-else size="25" class="ml-8" color="black">
+                        <v-icon v-else size="25" class="ml-8">
                           mdi-radiobox-blank
                         </v-icon>
                         <MdPreview v-model="quizQuestionsData[index].possibleOptions[oIndex]" language="en-US" preview-theme="github"
@@ -662,10 +661,10 @@ onMounted( async () => {
                       </v-row>
 
                       <v-row v-else-if="userStore.darkMode" class="mt-16 align-center " style="background-color: black">
-                        <v-icon v-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" size="25" class="ml-8" color="black">
+                        <v-icon v-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" size="25" class="ml-8">
                           mdi-radiobox-marked
                         </v-icon>
-                        <v-icon v-else size="25" class="ml-8" color="black">
+                        <v-icon v-else size="25" class="ml-8">
                           mdi-radiobox-blank
                         </v-icon>
                         <MdPreview v-model="quizQuestionsData[index].possibleOptions[oIndex]" language="en-US" preview-theme="github"
@@ -673,10 +672,10 @@ onMounted( async () => {
                       </v-row>
 
                       <v-row v-else class="mt-16 align-center " style="background-color: white">
-                        <v-icon v-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" size="25" class="ml-8" color="black">
+                        <v-icon v-if="currStudAnswers[index] && currStudAnswers[index].includes(option)" size="25" class="ml-8">
                           mdi-radiobox-marked
                         </v-icon>
-                        <v-icon v-else size="25" class="ml-8" color="black">
+                        <v-icon v-else size="25" class="ml-8">
                           mdi-radiobox-blank
                         </v-icon>
                         <MdPreview v-model="quizQuestionsData[index].possibleOptions[oIndex]" language="en-US" preview-theme="github"

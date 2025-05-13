@@ -71,16 +71,16 @@ class StudentModuleService(override val repository: LessonRepository,
      * @param moduleId identifier of the module
      * @param userId identifier of the user
      * @param userDto user performing the request
-     * @return StudentRequestDTO in case of success
+     * @return List<StudentRequestDTO>
      */
-    fun getStudentModuleRequest(lessonId: Int, moduleId: Int, userId: Int, userDto: UserAuthenticateDto?)
+    fun getStudentModuleRequests(lessonId: Int, moduleId: Int, userId: Int, userDto: UserAuthenticateDto?)
         = checkViewAccess(lessonId, moduleId, userDto) { lesson, module, _ ->
             val student = userRepository.getReferenceById(userId)
             val sm = smRepository.getByStudentModule(student, module, lesson)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-            val smrq = smrqRepository.getByStudentModule(sm, false)
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-            converter.toStudentRequestDTO(smrq)
+            smrqRepository.getAllByStudentModule(sm, false).map {
+                converter.toStudentRequestDTO(it)
+            }
         }
 
     /**
@@ -90,9 +90,9 @@ class StudentModuleService(override val repository: LessonRepository,
      * @param userDto user performing the request
      * @return StudentRequestDTO in case of success
      */
-    fun getStudentModuleRequest(lessonId: Int, moduleId: Int, userDto: UserAuthenticateDto?)
+    fun getStudentModuleRequests(lessonId: Int, moduleId: Int, userDto: UserAuthenticateDto?)
         = checkViewAccess(lessonId, moduleId, userDto) { _, _, user ->
-            getStudentModuleRequest(lessonId, moduleId, user.id, userDto)
+            getStudentModuleRequests(lessonId, moduleId, user.id, userDto)
         }
 
     /**

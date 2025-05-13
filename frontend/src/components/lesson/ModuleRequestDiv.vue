@@ -18,7 +18,6 @@ const { t } = useLocale()
 
 const moduleData = inject('module')
 const lesson = inject('lesson')
-const runtime = inject('runtime')
 
 const isHelpRequest = () => moduleRequestIsHelp(moduleData.value)
 const translate = (key, param = undefined) => {
@@ -30,7 +29,6 @@ const requestToggle = () => {
     requestDialog.value = true
     return
   }
-  runtime.value.running = true
   studentModuleApi.deleteStudentModuleRequest(lesson.value.id, moduleData.value.id).then(() => {
     moduleData.value.studentRequest = null
     reloadHook.value = new Date().getTime()
@@ -40,7 +38,7 @@ const requestToggle = () => {
   }).catch((err) => {
     // check if the request was already satisfied
     let alreadySatisfied = false
-    studentModuleApi.getStudentModuleRequest(lesson.value.id, moduleData.value.id).then((response) => {
+    studentModuleApi.getStudentModuleRequests(lesson.value.id, moduleData.value.id).then((response) => {
       if (response && response.satisfied) {
         appState.value.notifications.push({
           type: "error", title: translate('title_fail'),
@@ -58,12 +56,11 @@ const requestToggle = () => {
         })
       }
     })
-  }).finally(() => runtime.value.running = false)
+  })
 }
 
 const loadStudentRequest = () => {
-  runtime.value.running = true
-  studentModuleApi.getStudentModuleRequestTeacher(lesson.value.id, moduleData.value.id, moduleData.value.teacher)
+  studentModuleApi.getStudentModuleRequestsTeacher(lesson.value.id, moduleData.value.id, moduleData.value.teacher)
       .then((response) => {
         moduleData.value.studentRequest = response
         reloadHook.value = new Date().getTime()
@@ -74,11 +71,9 @@ const loadStudentRequest = () => {
           text: t('$vuetify.request_load_text_fail', err.code)
         })
       })
-      .finally(() => runtime.value.running = false)
 }
 
 const deleteTeacherAnswer = () => {
-  runtime.value.running = true
   studentModuleApi.deleteStudentModuleRequestAnswer(lesson.value.id, moduleData.value.id, moduleData.value.teacher)
       .then(() => {
         loadStudentRequest()
@@ -94,7 +89,6 @@ const deleteTeacherAnswer = () => {
           text: t('$vuetify.request_answer_deleted_text_fail', err.code)
         })
       })
-      .finally(() => runtime.value.running = false)
 }
 
 const isRelevantTeacherAnswer = () => {
@@ -120,26 +114,18 @@ const isRelevantTeacherAnswer = () => {
     </div>
 
     <div class="d-flex justify-space-between px-4 pb-2 pt-4">
-      <slot v-if="runtime && runtime.running" name="runtime">
-        <div class="d-flex justify-center align-center flex-grow-1">
-          <v-progress-circular v-if="runtime.running" size="28" indeterminate />
-        </div>
-      </slot>
-      <template v-else>
-        <slot v-if="runtime" name="runbtn" />
-        <v-btn v-if="!moduleData.teacher && moduleData.manualEval && !isHelpRequest()" class="flex-grow-1 ms-4" variant="tonal"
-               :color="unsatisfiedModuleRequest(moduleData) ? 'red' : 'green'" @click="requestToggle">
-          {{ t(`$vuetify.request_eval_${unsatisfiedModuleRequest(moduleData) ? 'cancel_' : ''}btn`) }}
-        </v-btn>
-        <v-btn v-if="!moduleData.teacher && isHelpRequest()" class="ms-4" variant="tonal"
-               :color="moduleData.requestType ? 'red' : 'orange'" @click="requestToggle">
-          {{ t(`$vuetify.request_help_${unsatisfiedModuleRequest(moduleData) ? 'cancel_' : ''}btn`) }}
-        </v-btn>
-        <v-btn v-if="moduleData.teacher" class="flex-grow-1 ms-4" variant="tonal"
-               color="green" @click="requestDialog = true">
-          {{ t(`$vuetify.request_teacher_${moduleRequestTeacher(moduleData)}_btn`) }}
-        </v-btn>
-      </template>
+      <v-btn v-if="!moduleData.teacher && moduleData.manualEval && !isHelpRequest()" class="flex-grow-1 ms-4" variant="tonal"
+             :color="unsatisfiedModuleRequest(moduleData) ? 'red' : 'green'" @click="requestToggle">
+        {{ t(`$vuetify.request_eval_${unsatisfiedModuleRequest(moduleData) ? 'cancel_' : ''}btn`) }}
+      </v-btn>
+      <v-btn v-if="!moduleData.teacher && isHelpRequest()" class="ms-4" variant="tonal"
+             :color="moduleData.requestType ? 'red' : 'orange'" @click="requestToggle">
+        {{ t(`$vuetify.request_help_${unsatisfiedModuleRequest(moduleData) ? 'cancel_' : ''}btn`) }}
+      </v-btn>
+      <v-btn v-if="moduleData.teacher" class="flex-grow-1 ms-4" variant="tonal"
+             color="green" @click="requestDialog = true">
+        {{ t(`$vuetify.request_teacher_${moduleRequestTeacher(moduleData)}_btn`) }}
+      </v-btn>
     </div>
   </div>
 </template>

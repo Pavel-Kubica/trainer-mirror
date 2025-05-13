@@ -22,6 +22,12 @@ import org.springframework.web.bind.annotation.*
 class WeekController(override val service: WeekService, userService: UserService)
 : IControllerImpl<Week, WeekFindDTO, WeekGetDTO, WeekCreateDTO, WeekUpdateDTO>(service, userService) {
 
+    @GetMapping("/taught")
+    fun findAllTaught(request: HttpServletRequest, response: HttpServletResponse,
+                           @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String)
+        = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
+        setCookie(loginSecret, response)
+        service.findAllTaught(user) }
     /**
      * Updates the order of lessons within a week.
      *

@@ -1,28 +1,23 @@
-### Overview of students
+### Course users
 
-Users in the course have two roles: Teacher and Student. Based on a previous request, only wrzecond and matuj10 are currently assigned the role Teacher to the course. (You can find us on Discord: @kvetinac97 and @honzamatousek or write to e-mail). The Student role is the default for anyone who joins the course using a join code.
+Users in a course can have one of two roles: Teacher or Student.
+The Student role is the default for anyone who joins the course using a join code. Teachers must be assigned by either an admin
+or guarantor for every course (currently the job of @matouj10). The administrator will also usually import the corresponding students from KOS,
+you do not have to do this manually.
 
-In the current concept, the course corresponds to any group of students that you plan to teach together. So if a teacher has a group on Monday 9:15 and 11:00 and Wednesday 12:45 and 14:15, one course will be Monday and the other Wednesday. If a teacher teaches repeaters on Mondays at 12:45pm and freshmen at 2:30pm, it may be better to have two separate courses (with repeaters you will go at a different pace).
+### Join code
 
-### Connection code
+In the course's detail, you have the option to set a join code by clicking on the button of the same name.
+If the code is set, students may join the course with the given code on the homepage using the "Join a course" button.
+This is useful for example in situations where a student from another parallel comes to yours.
 
-In the student overview, each teacher has the option to set a connection code (CHANGE CODE button). If the code is set, each student has the option to join the course with the given code on the start page (JOIN THE COURSE). This is useful, for example, in a situation where a student from another parallel comes to the exercise.
+### Solution view
 
-### Overview of students in the course
+In the solution view, you may use the left sidebar's top toggle to switch between solutions for the same module by different users,
+or solutions by the same user for different modules in that week. You may also use the right sidebar to switch between
+the module's tests and the requests and answers for that student.
 
-You can view the list of students in the course details by clicking on the Users button. You will see an alphabetical list of all users including their progress in the lesson with the option to remove users from the course. The list can be sorted and searched.
+In the case of a code module, you may also comment lines of code directly.
+Previous code comments will be shown for the last answered request, both to you and the student.
 
-![](/images_for_md_files/guides/en/teacher/student_overview/change_code.png)
-
-After clicking on the eye in the student's row, you will get a view of the student's progress across all lessons with the option to click on the detail of a specific lesson.
-
-### Commenting students code
-
-If you get to a student's code module you can answer their help requests or comment their code.
-
-![](/images_for_md_files/guides/en/teacher/student_overview/anwer_to_help_request.png)
-
-If you think that your answer is inappropriate, or you would like to change it you can always delete it by pressing the DELETE ANSWER button.
-
-![](/images_for_md_files/guides/en/teacher/student_overview/delete_answer.png)
-
+![](/images_for_md_files/guides/en/teacher/student_overview/solution_view.png)

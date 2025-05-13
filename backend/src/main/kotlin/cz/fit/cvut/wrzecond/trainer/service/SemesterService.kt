@@ -26,7 +26,8 @@ class SemesterService(
     private val courseRepository: CourseRepository,
     private val subjectRepository: SubjectRepository,
     private val userRepository: UserRepository,
-    private val logRepository: LogRepository
+    private val logRepository: LogRepository,
+    private val logService: LogService
 ) :
     IServiceImpl<Semester, SemesterFindDTO, SemesterGetDTO, SemesterCreateDTO, SemesterUpdateDTO>(
         repository,
@@ -70,7 +71,7 @@ class SemesterService(
         if (!user.isAdmin)
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         val semester = repository.saveAndFlush(converter.toEntity(dto))
-        logRepository.saveAndFlush(createLogEntry(userDto, semester, "create"))
+        logService.log(userDto, semester, "create")
         converter.toGetDTO(semester)
     }
 
@@ -85,7 +86,7 @@ class SemesterService(
     override fun update(id: Int, dto: SemesterUpdateDTO, userDto: UserAuthenticateDto?) =
         checkEditAccess(id, userDto) { semester, _ ->
             val updatedSemester = repository.saveAndFlush(converter.merge(semester, dto))
-            logRepository.saveAndFlush(createLogEntry(userDto, updatedSemester, "update"))
+            logService.log(userDto, updatedSemester, "update")
             converter.toGetDTO(updatedSemester)
         }
 
@@ -97,7 +98,7 @@ class SemesterService(
      */
     override fun delete(id: Int, userDto: UserAuthenticateDto?): Unit = checkEditAccess(id, userDto) { semester, _ ->
         repository.delete(semester)
-        logRepository.saveAndFlush(createLogEntry(userDto, semester, "delete"))
+        logService.log(userDto, semester, "delete")
     }
 
     /**

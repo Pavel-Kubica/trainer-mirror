@@ -18,11 +18,13 @@ import org.springframework.web.server.ResponseStatusException
  * @param userRepository The repository for handling user data operations.
  * @param subjectGuarantorRepository The repository for handling subject guarantor data operations.
  * @param logRepository The repository for handling log data operations.
+ * @param logService The service for handling log data operations.
  */
 @Service
 class SubjectService (override val repository: SubjectRepository, private val userRepository: UserRepository,
                       private val subjectGuarantorRepository: SubjectGuarantorRepository,
-                      private val logRepository: LogRepository)
+                      private val logRepository: LogRepository,
+                      private val logService: LogService)
     : IServiceImpl<Subject, SubjectFindDTO, SubjectGetDTO, SubjectCreateDTO, SubjectUpdateDTO>(repository, userRepository) {
 
     /**
@@ -78,7 +80,7 @@ class SubjectService (override val repository: SubjectRepository, private val us
         if (!user.isAdmin)
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         val subject = repository.saveAndFlush(converter.toEntity(dto))
-        logRepository.saveAndFlush(createLogEntry(userDto, subject, "create"))
+        logService.log(userDto, subject, "create")
         converter.toGetDTO(subject)
     }
 
@@ -94,18 +96,18 @@ class SubjectService (override val repository: SubjectRepository, private val us
         = checkEditAccess(id, userDto) { subject, _ ->
         val subjectToUpdate = repository.save(converter.merge(subject, dto))
         val result = converter.toGetDTO(subjectToUpdate)
-        logRepository.saveAndFlush(createLogEntry(userDto, subjectToUpdate, "update"))
+        logService.log(userDto, subjectToUpdate, "update")
         if (dto.guarantors != null) {
             if (subjectGuarantorRepository.findBySubject(subject).isNotEmpty()) {
                 val guarantorsToDelete = subjectGuarantorRepository.findBySubject(subject)
-                guarantorsToDelete.forEach { logRepository.saveAndFlush(createLogEntry(userDto, it, "delete")) }
+                guarantorsToDelete.forEach { logService.log(userDto, it, "delete") }
                 subjectGuarantorRepository.deleteAll(guarantorsToDelete)
                 subjectGuarantorRepository.flush()
             }
             val savedGuarantors = subjectGuarantorRepository.saveAllAndFlush(dto.guarantors.map { user ->
                 SubjectGuarantor(subject, userRepository.getReferenceById(user.id))
             })
-            savedGuarantors.forEach { logRepository.saveAndFlush(createLogEntry(userDto, it, "create")) }
+            savedGuarantors.forEach { logService.log(userDto, it, "create") }
         }
         result
         }
@@ -123,7 +125,7 @@ class SubjectService (override val repository: SubjectRepository, private val us
             if (subject.courses.isNotEmpty())
                 throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY)
             repository.delete(subject)
-            logRepository.saveAndFlush(createLogEntry(userDto, subject, "delete"))
+            logService.log(userDto, subject, "delete")
         }
 
     /**
@@ -153,10 +155,10 @@ class SubjectService (override val repository: SubjectRepository, private val us
                 throw ResponseStatusException(HttpStatus.NOT_FOUND)
         val sg = SubjectGuarantor(subject, guarantor.get())
         val createdSG = subjectGuarantorRepository.saveAndFlush(sg)
-        logRepository.saveAndFlush(createLogEntry(userDto, createdSG, "create"))
+        logService.log(userDto, createdSG, "create")
         val updatedSubject = repository.saveAndFlush(Subject(subject.name, subject.code, subject.courses,
                     subject.guarantors + sg, subject.questions, subject.id))
-        logRepository.saveAndFlush(createLogEntry(userDto, updatedSubject, "update"))
+        logService.log(userDto, updatedSubject, "update")
         null
     }
 
@@ -178,10 +180,10 @@ class SubjectService (override val repository: SubjectRepository, private val us
         if (sg.isEmpty)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         subjectGuarantorRepository.delete(sg.get())
-        logRepository.saveAndFlush(createLogEntry(userDto, sg.get(), "delete"))
+        logService.log(userDto, sg.get(), "delete")
         val updatedSubject = repository.saveAndFlush(Subject(subject.name, subject.code, subject.courses,
                 subject.guarantors - sg.get(), subject.questions, subject.id))
-        logRepository.saveAndFlush(createLogEntry(userDto, updatedSubject, "update"))
+        logService.log(userDto, updatedSubject, "update")
         subjectGuarantorRepository.flush()
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException
  *
  * @property repository Repository for managing Template entities.
  * @property logRepository Repository for managing Log entities.
+ * @property logService Service for managing Log entities.
  * @property cmtRepository Repository for managing CodeModuleTest entities.
  * @property authorizationService Service for handling authorization logic.
  * @property userRepository Repository for managing User entities.
@@ -27,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException
 class TemplateService(
     override val repository: TemplateRepository,
     private val logRepository: LogRepository,
+    private val logService: LogService,
     private val cmtRepository: CodeModuleTestRepository,
     private val authorizationService: AuthorizationService,
     userRepository: UserRepository
@@ -73,7 +75,7 @@ class TemplateService(
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         val template = repository.saveAndFlush(converter.toEntity(dto, user))
         cmtRepository.saveAllAndFlush(dto.tests.map { converter.toEntity(it, template) })
-        logRepository.saveAndFlush(createLogEntry(userDto, template, "create"))
+        logService.log(userDto, template, "create")
         converter.toFindDTO(template)
     }
 
@@ -90,7 +92,7 @@ class TemplateService(
             checkEditAccess(converter.merge(template, dto), userDto) { templateUpdate, _ ->
                 val editedTemplate = repository.saveAndFlush(templateUpdate)
                 dto.tests?.let { tests -> cmtRepository.saveAllAndFlush(tests.map { converter.toEntity(it, editedTemplate) })}
-                logRepository.saveAndFlush(createLogEntry(userDto, templateUpdate, "update"))
+                logService.log(userDto, templateUpdate, "update")
                 converter.toFindDTO(templateUpdate)
             }
         }

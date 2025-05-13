@@ -96,10 +96,17 @@ class ConverterService(
         TeacherNoteFindDTO(id, content, created, toFindDTO(author), redacted)
     }
 
-    fun toFindDTO(question: Question) = question.run{
-            QuestionFindDTO(id, questionData, possibleAnswersData, timeLimit, author.username, singleAnswer, questionType,
-                topics.map { toFindDTO(it.topic) }, subjects.map { toFindDTO(it.subject) })
-        }
+    fun toFindDTO(question: Question) = question.run {
+        QuestionFindDTO(id,
+            questionData,
+            possibleAnswersData,
+            timeLimit,
+            author.username,
+            singleAnswer,
+            questionType,
+            topics.map { toFindDTO(it.topic) },
+            subjects.map { toFindDTO(it.subject) })
+    }
 
     /**
      * Converts a Lesson entity and an optional User entity into a LessonFindDTO.
@@ -112,7 +119,14 @@ class ConverterService(
      */
     fun toFindDTO(lesson: Lesson, user: User?) = lesson.run {
         LessonFindDTO(
-            id, name, hidden, order, type, if (user != null && canEdit(user)) lockCode else null, timeEnd,
+            id,
+            name,
+            hidden,
+            order,
+            type,
+            if (user != null && canEdit(user)) lockCode else null,
+            referenceSolutionAccessibleFrom,
+            timeEnd,
             modules.filter { it.module.type.hasProgress }.map {
                 it.module.students.find { sm ->
                     sm.student.id == user?.id && sm.lesson.id == id
@@ -144,15 +158,32 @@ class ConverterService(
                 order, null, null, emptyList(), emptyList()
             )
         else ModuleFindDTO(
-            module.id, module.name,
-            module.subjects.map { toFindDTO(it.subject) }, module.topics.map { toFindDTO(it.topic) },
-            module.type, module.assignment, module.difficulty,
-            false, module.lockable, module.timeLimit, module.manualEval, module.hidden, module.minPercent, module.file,
-            dependsOn?.id, module.author.username, module.editors.map { it.editor.username },
-            studentModule?.allowedShow, studentModule?.completedEarly, studentModule?.completedOn,
+            module.id,
+            module.name,
+            module.subjects.map { toFindDTO(it.subject) },
+            module.topics.map { toFindDTO(it.topic) },
+            module.type,
+            module.assignment,
+            module.difficulty,
+            false,
+            module.lockable,
+            module.timeLimit,
+            module.manualEval,
+            module.hidden,
+            module.minPercent,
+            module.file,
+            dependsOn?.id,
+            module.author.username,
+            module.editors.map { it.editor.username },
+            studentModule?.allowedShow,
+            studentModule?.completedEarly,
+            studentModule?.completedOn,
             studentModuleRequest?.let { toStudentRequestDTO(it) },
             // smrqRepository.getLastTeacherComment(studentModule)?.let { toTeacherCommentDTO(it) },
-            order, studentModule?.percent, studentModule?.file != null,module.students.map { toFindDTO(it) },
+            order,
+            studentModule?.percent,
+            studentModule?.file != null,
+            module.students.map { toFindDTO(it) },
             module.ratings.map { toFindDTO(it) }
         )
     }
@@ -166,15 +197,14 @@ class ConverterService(
      *         total number of lessons, and the user's role level in the course.
      */
     fun toFindDTO(course: Course, user: User?) = course.run {
-        weeks.flatMap { it.lessons }
-            .filter { l -> l.modules.any { md -> md.module.type.hasProgress } }
-            .let { lessons ->
-                CourseFindDTO(
-                    id, name, shortName, subject?.let { toFindDTO(it) }, toFindDTO(semester),
-                    lessons.count { !it.hidden && toFindDTO(it, user).progress == 100 }, lessons.count { !it.hidden },
-                    user?.courses?.firstOrNull { it.course.id == id }?.role?.level
-                )
-            }
+        CourseFindDTO(
+            id,
+            name,
+            shortName,
+            subject?.let { toFindDTO(it) },
+            toFindDTO(semester),
+            user?.courses?.firstOrNull { it.course.id == id }?.role?.level
+        )
     }
 
     /**
@@ -218,7 +248,7 @@ class ConverterService(
 
             editors.map { it.editor.username }, null, null,
             null, null, null,
-            null, null, students.map { toFindDTO(it)}, ratings.map { toFindDTO(it)}
+            null, null, students.map { toFindDTO(it) }, ratings.map { toFindDTO(it) }
         )
     }
 
@@ -230,8 +260,18 @@ class ConverterService(
      */
     fun toFindDTO(template: Template) = template.run {
         TemplateFindDTO(
-            id, name, codeType, libraryType, interactionType, envelopeType, customEnvelope, codeHidden,
-            fileLimit, tests.map { toGetDTO(it) }, lastModificationTime, toFindDTO(author)
+            id,
+            name,
+            codeType,
+            libraryType,
+            interactionType,
+            envelopeType,
+            customEnvelope,
+            codeHidden,
+            fileLimit,
+            tests.map { toGetDTO(it) },
+            lastModificationTime,
+            toFindDTO(author)
         )
     }
 
@@ -249,7 +289,8 @@ class ConverterService(
      * @param codeComment The CodeComment entity to be converted.
      * @return A CodeCommentFindDTO containing the id, file name, row number, and comment of the code comment.
      */
-    fun toFindDTO(codeComment: CodeComment) = codeComment.run { CodeCommentFindDTO(id, fileName, rowNumber, comment) }
+    fun toFindDTO(codeComment: CodeComment) =
+        codeComment.run { CodeCommentFindDTO(id, fileName, rowNumber, comment) }
 
     /**
      * Converts a StudentModule entity into a StudentModuleFindDTO.
@@ -257,7 +298,8 @@ class ConverterService(
      * @param studentModule The StudentModule entity to be converted.
      * @return A StudentModuleFindDTO containing the id and the corresponding StudentFindDTO.
      */
-    fun toFindDTO(studentModule: StudentModule) = studentModule.run { StudentModuleFindDTO(id,toFindDTO(student)) }
+    fun toFindDTO(studentModule: StudentModule) =
+        studentModule.run { StudentModuleFindDTO(id, toFindDTO(student)) }
 
     /**
      * Converts a StudentRating entity into a StudentRatingFindDTO.
@@ -265,24 +307,42 @@ class ConverterService(
      * @param studentRating The StudentRating entity to be converted
      * @return A StudentRatingFindDTO containing the id, points, text, published status, and the corresponding StudentFindDTO
      */
-    fun toFindDTO(studentRating: StudentRating) = studentRating.run { StudentRatingFindDTO(id,points,text,published,toFindDTO(student))}
+    fun toFindDTO(studentRating: StudentRating) =
+        studentRating.run { StudentRatingFindDTO(id, points, text, published, toFindDTO(student)) }
 
     fun toFindDTO(studentAnswer: StudentAnswer) = studentAnswer.run {
         StudAnswerFindDTO(id, quizroom?.id, student.id, question.id, answerData)
     }
 
     fun toFindDTO(scoringRule: ScoringRule, user: User? = null) = scoringRule.run {
-        if (user != null){
-            ScoringRuleFindDTO(id, name, shortName, description, points, until, toComplete, lesson.id,
-                modules.map { toGetDTO(it.module)},
-                lesson.students.filter{st -> st.lesson == lesson && st.student == user
-                        && modules.any{srm -> srm.module == st.module}}.map{st -> toGetDTO(st)})
-        }
-        else{
-            ScoringRuleFindDTO(id, name, shortName, description, points, until, toComplete, lesson.id,
-                modules.map { toGetDTO(it.module)},
-                lesson.students.filter{st -> st.lesson == lesson
-                        && modules.any{srm -> srm.module == st.module}}.map{st -> toGetDTO(st)})
+        if (user != null) {
+            ScoringRuleFindDTO(id,
+                name,
+                shortName,
+                description,
+                points,
+                until,
+                toComplete,
+                lesson.id,
+                modules.map { toGetDTO(it.module) },
+                lesson.students.filter { st ->
+                    st.lesson == lesson && st.student == user
+                            && modules.any { srm -> srm.module == st.module }
+                }.map { st -> toGetDTO(st) })
+        } else {
+            ScoringRuleFindDTO(id,
+                name,
+                shortName,
+                description,
+                points,
+                until,
+                toComplete,
+                lesson.id,
+                modules.map { toGetDTO(it.module) },
+                lesson.students.filter { st ->
+                    st.lesson == lesson
+                            && modules.any { srm -> srm.module == st.module }
+                }.map { st -> toGetDTO(st) })
         }
 
     }
@@ -303,7 +363,17 @@ class ConverterService(
      * @param module the Module object to be converted.
      * @return A  ModuleFindTableDTO.
      */
-    fun toFindDTOModule(module: Module) = module.run { ModuleFindTableDTO(id, name, subjects.map {toFindDTO(it.subject)}, topics.map { toFindDTO(it.topic) }, editors.map { it.editor.username }, type, author.username) }
+    fun toFindDTOModule(module: Module) = module.run {
+        ModuleFindTableDTO(
+            id,
+            name,
+            subjects.map { toFindDTO(it.subject) },
+            topics.map { toFindDTO(it.topic) },
+            editors.map { it.editor.username },
+            type,
+            author.username
+        )
+    }
 
     // === GET DTO
 
@@ -316,7 +386,8 @@ class ConverterService(
      */
     fun toGetDTO(subject: Subject, user: User? = null) = subject.run {
         SubjectGetDTO(id, name, code,
-            courses.filter { it.canView(user) }.sortedBy { it.shortName }.map { toFindDTO(it, user) })
+            courses.filter { it.canView(user) }.sortedBy { it.shortName }
+                .map { toFindDTO(it, user) })
     }
 
     /**
@@ -338,7 +409,15 @@ class ConverterService(
      * @return QuestionGetDTO.
      */
     fun toGetDTO(question: Question, user: User? = null) = question.run {
-        QuestionGetDTO(id, questionData, possibleAnswersData, timeLimit, author.username, singleAnswer, questionType)
+        QuestionGetDTO(
+            id,
+            questionData,
+            possibleAnswersData,
+            timeLimit,
+            author.username,
+            singleAnswer,
+            questionType
+        )
     }
 
     /**
@@ -351,9 +430,15 @@ class ConverterService(
     fun toGetDTO(course: Course, user: User? = null) = course.run {
         user?.courses?.firstOrNull { it.course.id == id }?.role?.level.let { role ->
             CourseGetDTO(
-                id, name, shortName, subject?.let { toFindDTO(it) }, toFindDTO(semester), role, public,
+                id,
+                name,
+                shortName,
+                subject?.let { toFindDTO(it) },
+                toFindDTO(semester),
+                role,
+                public,
                 if (user != null && authorizationService.isTrusted(user, course)) secret else null,
-                weeks.sortedByDescending { it.from }.map { toGetDTO(it, user) }
+                weeks.sortedWith(compareByDescending<Week> { it.from }.thenByDescending { it.id }).map { toGetDTO(it, user) }
             )
         }
     }
@@ -394,10 +479,19 @@ class ConverterService(
     fun toGetDTO(lesson: Lesson, user: User? = null, allModules: Boolean = false) = lesson.run {
         val canEdit = user == null || week.course.canEdit(user)
         LessonGetDTO(
-            id, toFindDTO(week, user), name, hidden, type,
+            id,
+            toFindDTO(week, user),
+            name,
+            hidden,
+            type,
             if (canEdit) lockCode else null,
-            timeStart, timeEnd, description, modules.filter { allModules || canEdit || !it.module.hidden }
-                .map { toFindDTO(it, user) }.sortedBy { it.order }, scoringRules.map{toGetDTO(it,user)}
+            referenceSolutionAccessibleFrom,
+            timeStart,
+            timeEnd,
+            description,
+            modules.filter { allModules || canEdit || !it.module.hidden }
+                .map { toFindDTO(it, user) }.sortedBy { it.order },
+            scoringRules.map { toGetDTO(it, user) }
         )
     }
 
@@ -415,7 +509,7 @@ class ConverterService(
             editors.map { it.editor.id }, subjects.map { toFindDTO(it.subject) },
             topics.map { toFindDTO(it.topic) },
             type, lastModificationTime, difficulty, assignment,
-            minPercent, lockable, timeLimit, manualEval, hidden, ratings.map { toFindDTO(it)}
+            minPercent, lockable, timeLimit, manualEval, hidden, ratings.map { toFindDTO(it) }
         )
     }
 
@@ -438,7 +532,17 @@ class ConverterService(
      * @return A CodeModuleTestFindDTO.
      */
     fun toGetDTO(codeModuleTest: CodeModuleTest) = codeModuleTest.run {
-        CodeModuleTestFindDTO(id, id, name, parameter, description, timeLimit, checkMemory, shouldFail, hidden)
+        CodeModuleTestFindDTO(
+            id,
+            id,
+            name,
+            parameter,
+            description,
+            timeLimit,
+            checkMemory,
+            shouldFail,
+            hidden
+        )
     }
 
     fun toGetDTO(studentAnswer: StudentAnswer) = studentAnswer.run {
@@ -479,7 +583,17 @@ class ConverterService(
      * @return The corresponding StudentModuleGetDTO object.
      */
     fun toGetDTO(studentModule: StudentModule) = studentModule.run {
-        StudentModuleGetDTO(id,toFindDTO(module),toFindDTO(student),toFindDTO(lesson,student),percent,openedOn,completedOn,allowedShow,completedEarly,unlocked,
+        StudentModuleGetDTO(
+            id,
+            toFindDTO(module),
+            toFindDTO(student),
+            toFindDTO(lesson, student),
+            percent,
+            openedOn,
+            completedOn,
+            allowedShow,
+            completedEarly,
+            unlocked,
         )
     }
 
@@ -490,14 +604,14 @@ class ConverterService(
      * @return a StudentRatingGetDTO object containing the data from the given StudentRating object.
      */
     fun toGetDTO(studentRating: StudentRating) = studentRating.run {
-        StudentRatingGetDTO(id,points,text,toFindDTO(student), toFindDTO(module))
+        StudentRatingGetDTO(id, points, text, toFindDTO(student), toFindDTO(module))
     }
 
     /* fun toGetDTO(question: Question) = question.run {
          QuestionGetDTO(id, questionData, possibleAnswersData, timeLimit, author, singleAnswer, questionType )
      }*/
 
-    fun toGetDTO(scoringRule: ScoringRule,user: User? = null) = scoringRule.run {
+    fun toGetDTO(scoringRule: ScoringRule, user: User? = null) = scoringRule.run {
         if (user != null) {
             ScoringRuleGetDTO(id, name, shortName, description, points, until, toComplete,
                 modules.map { toGetDTO(it.module) },
@@ -505,20 +619,23 @@ class ConverterService(
                     st.lesson == lesson && st.student == user
                             && modules.any { srm -> srm.module == st.module }
                 }.map { st -> toGetDTO(st) })
-        }
-        else {
-            ScoringRuleGetDTO(id,name,shortName, description, points, until, toComplete,
+        } else {
+            ScoringRuleGetDTO(id, name, shortName, description, points, until, toComplete,
                 modules.map { toGetDTO(it.module) },
-                lesson.students.filter{st -> st.lesson == lesson
-                        && modules.any{srm -> srm.module == st.module}}.map{st -> toGetDTO(st)})
+                lesson.students.filter { st ->
+                    st.lesson == lesson
+                            && modules.any { srm -> srm.module == st.module }
+                }.map { st -> toGetDTO(st) })
         }
 
     }
 
 
     fun toGetDTO(lessonModule: LessonModule) = lessonModule.run {
-        LessonModuleGetDTO(id,toFindDTO(module),toGetDTO(lesson),
-            lesson.students.filter{it.lesson == lesson && it.module == module}.map{toGetDTO(it)}, order)
+        LessonModuleGetDTO(id, toFindDTO(module), toGetDTO(lesson),
+            lesson.students.filter { it.lesson == lesson && it.module == module }
+                .map { toGetDTO(it) }, order
+        )
     }
 
     // === READ DTO
@@ -590,7 +707,7 @@ class ConverterService(
      * @return a StudentRequestDTO object consisting of the data from the provided StudentModuleRequest.
      */
     fun toStudentRequestDTO(smr: StudentModuleRequest) = smr.run {
-        StudentRequestDTO(id, requestType, requestText, satisfied, if (satisfied) toTeacherCommentDTO(smr) else null)
+        StudentRequestDTO(id, smr.requestedOn, requestType, requestText, satisfied, if (satisfied) smr.satisfiedOn else null, if (satisfied) toTeacherCommentDTO(smr) else null)
     }
 
     /**
@@ -601,7 +718,7 @@ class ConverterService(
      */
     fun toModuleUserDTO(sm: StudentModule) = sm.run {
         ModuleUserDTO(
-            module.id, requests.firstOrNull { !it.satisfied }?.requestType,
+            module.id, requests.firstOrNull { !it.satisfied }?.let { toStudentRequestDTO(it) },
             allowedShow, percent, completedEarly, completedOn
         )
     }
@@ -627,22 +744,38 @@ class ConverterService(
     fun toEntity(cm: CodeModuleCreateDTO) = cm.run {
         moduleRepository.getReferenceById(moduleId).let {
             CodeModule(
-                codeType, interactionType, libraryType, envelopeType, customEnvelope,
-                codeHidden, fileLimit, hideCompilerOutput, referencePublic, emptyList(), emptyList(), it, it.id
+                codeType,
+                interactionType,
+                libraryType,
+                envelopeType,
+                customEnvelope,
+                codeHidden,
+                fileLimit,
+                hideCompilerOutput,
+                referencePublic,
+                emptyList(),
+                emptyList(),
+                it,
+                it.id
             )
         }
     }
 
     fun toEntity(sa: StudAnswerCreateDTO, correct: AnswerStatusType) = sa.run {
-        StudentAnswer(sa.data, correct,
-            sa.quizroom?.let { quizroomRepository.getReferenceById(it) }, userRepository.getReferenceById(student),
-            questionRepository.getReferenceById(question))
+        StudentAnswer(
+            sa.data,
+            correct,
+            sa.quizroom?.let { quizroomRepository.getReferenceById(it) },
+            userRepository.getReferenceById(student),
+            questionRepository.getReferenceById(question)
+        )
     }
 
     fun toEntity(question: QuestionCreateDTO) = question.run {
         Question(
             questionData, possibleAnswersData, correctAnswerData, explanation ?: "", singleAnswer,
-            userRepository.getByUsername(author) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND),
+            userRepository.getByUsername(author)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND),
             timeLimit, questionType, emptyList(), emptyList(), emptyList(), emptyList()
         )
     }
@@ -667,7 +800,18 @@ class ConverterService(
      * @return A CodeModuleTest entity constructed from the provided DTO and code module.
      */
     fun toEntity(cmt: CodeModuleTestEditDTO, cm: CodeModule) = cmt.run {
-        CodeModuleTest(name, parameter, description, timeLimit, checkMemory, shouldFail, hidden, null, cm, cmt.realId ?: 0)
+        CodeModuleTest(
+            name,
+            parameter,
+            description,
+            timeLimit,
+            checkMemory,
+            shouldFail,
+            hidden,
+            null,
+            cm,
+            cmt.realId ?: 0
+        )
     }
 
     /**
@@ -678,7 +822,18 @@ class ConverterService(
      * @return A CodeModuleTest entity populated with data from the provided DTO and template.
      */
     fun toEntity(cmt: CodeModuleTestEditDTO, template: Template) = cmt.run {
-        CodeModuleTest(name, parameter, description, timeLimit, checkMemory, shouldFail, hidden, template, null,cmt.realId ?: 0)
+        CodeModuleTest(
+            name,
+            parameter,
+            description,
+            timeLimit,
+            checkMemory,
+            shouldFail,
+            hidden,
+            template,
+            null,
+            cmt.realId ?: 0
+        )
     }
 
     /**
@@ -702,8 +857,24 @@ class ConverterService(
     fun toEntity(module: ModuleCreateDTO, user: User) = module.run {
         val now = Timestamp.from(Instant.now())
         Module(
-            name, type, assignment, difficulty, lockable, timeLimit, manualEval, hidden, minPercent,
-            null, now, emptyList(), emptyList(), emptyList(),emptyList(),emptyList(), emptyList(),emptyList(),
+            name,
+            type,
+            assignment,
+            difficulty,
+            lockable,
+            timeLimit,
+            manualEval,
+            hidden,
+            minPercent,
+            null,
+            now,
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            emptyList(),
             user
         )
     }
@@ -733,7 +904,8 @@ class ConverterService(
     fun toEntity(lesson: LessonCreateDTO, week: Week) = lesson.run {
         Lesson(
             name, hidden, order, timeStart, timeLimit, description, type,
-            lockCode?.let { it.ifEmpty { null } }, week, emptyList(),emptyList(), emptyList()
+            lockCode?.let { it.ifEmpty { null } }, referenceSolutionAccessibleFrom,
+            week, emptyList(), emptyList(), emptyList()
         )
     }
 
@@ -761,8 +933,8 @@ class ConverterService(
             secret = null,
             subject = subject?.let { subjectRepository.getReferenceById(it) },
             semester = semester?.let { semesterRepository.getReferenceById(it) },
-            weeks =  emptyList(),
-            users =  emptyList()
+            weeks = emptyList(),
+            users = emptyList()
         )
     }
 
@@ -776,6 +948,7 @@ class ConverterService(
     fun toEntity(week: WeekCreateDTO, course: Course) = week.run {
         Week(name, from, until, course, emptyList())
     }
+
     /**
      * Converts a TopicCreateDTO to a Topic entity.
      *
@@ -810,7 +983,7 @@ class ConverterService(
      * @param studentRating the data transfer object containing the necessary information to create a new StudentRating.
      * @return a new StudentRating entity populated with data from the given DTO.
      */
-    fun toEntity(studentRating: StudentRatingCreateDTO) = studentRating.run{
+    fun toEntity(studentRating: StudentRatingCreateDTO) = studentRating.run {
         StudentRating(
             points = points,
             text = text,
@@ -830,7 +1003,7 @@ class ConverterService(
             toComplete = 0,
             lesson = lessonRepository.getReferenceById(lesson),
             modules = emptyList(),
-          //  studentModules = emptyList(),
+            //  studentModules = emptyList(),
         )
     }
 
@@ -858,11 +1031,19 @@ class ConverterService(
      */
     fun merge(cm: CodeModule, dto: CodeModuleUpdateDTO) = cm.run {
         CodeModule(
-            dto.codeType ?: codeType, dto.interactionType ?: interactionType,
-            dto.libraryType ?: libraryType, dto.envelopeType ?: envelopeType,
+            dto.codeType ?: codeType,
+            dto.interactionType ?: interactionType,
+            dto.libraryType ?: libraryType,
+            dto.envelopeType ?: envelopeType,
             if (dto.envelopeType == EnvelopeType.ENV_CUSTOM) dto.customEnvelope else customEnvelope,
-            dto.codeHidden ?: codeHidden, dto.fileLimit ?: fileLimit, dto.hideCompilerOutput ?: false,
-            dto.referencePublic ?: referencePublic, tests, files, module, id
+            dto.codeHidden ?: codeHidden,
+            dto.fileLimit ?: fileLimit,
+            dto.hideCompilerOutput ?: false,
+            dto.referencePublic ?: referencePublic,
+            tests,
+            files,
+            module,
+            id
         )
     }
 
@@ -885,7 +1066,7 @@ class ConverterService(
     }
 
     fun merge(sa: StudentAnswer, dto: StudAnswerUpdateDTO, correct: AnswerStatusType?) = sa.run {
-        StudentAnswer(dto.data, correct?: isCorrect, quizroom, student, question, id)
+        StudentAnswer(dto.data, correct ?: isCorrect, quizroom, student, question, id)
     }
 
     /**
@@ -908,12 +1089,21 @@ class ConverterService(
     fun merge(question: Question, dto: QuestionUpdateDTO) = question.run {
         Question(
             dto.questionData ?: questionData,
-            dto.possibleAnswersData ?: possibleAnswersData, dto.correctAnswerData ?: correctAnswerData,
-            dto.explanation ?: explanation, dto.singleAnswer ?: singleAnswer,
+            dto.possibleAnswersData ?: possibleAnswersData,
+            dto.correctAnswerData ?: correctAnswerData,
+            dto.explanation ?: explanation,
+            dto.singleAnswer ?: singleAnswer,
             if (dto.author != null)
-                userRepository.getByUsername(dto.author) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+                userRepository.getByUsername(dto.author)
+                    ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
             else author,
-            dto.timeLimit ?: timeLimit, questionType, questionAnswer, quizzes, emptyList(), emptyList(), id
+            dto.timeLimit ?: timeLimit,
+            questionType,
+            questionAnswer,
+            quizzes,
+            emptyList(),
+            emptyList(),
+            id
         )
     }
 
@@ -926,9 +1116,20 @@ class ConverterService(
      */
     fun merge(lesson: Lesson, dto: LessonUpdateDTO) = lesson.run {
         Lesson(
-            dto.name ?: name, dto.hidden ?: hidden, dto.order ?: order,
-            dto.timeStart, dto.timeLimit, dto.description ?: description,
-            dto.type ?: type, dto.lockCode?.let { it.ifEmpty { null } }, week, modules, students, scoringRules, id
+            dto.name ?: name,
+            dto.hidden ?: hidden,
+            dto.order ?: order,
+            dto.timeStart,
+            dto.timeLimit,
+            dto.description ?: description,
+            dto.type ?: type,
+            dto.lockCode?.let { it.ifEmpty { null } },
+            dto.referenceSolutionAccessibleFrom,
+            week,
+            modules,
+            students,
+            scoringRules,
+            id
         )
     }
 
@@ -951,7 +1152,8 @@ class ConverterService(
      * @param dto The TopicCreateDTO containing attributes to be merged into the Topic.
      * @return A new Topic instance.
      */
-    fun merge(topic: Topic, dto: TopicCreateDTO) = topic.run { Topic(dto.name, modules, emptyList(), id) }
+    fun merge(topic: Topic, dto: TopicCreateDTO) =
+        topic.run { Topic(dto.name, modules, emptyList(), id) }
 
     /**
      * Merges the given SemesterUpdateDTO into the existing Semester and returns a new Semester instance
@@ -973,9 +1175,18 @@ class ConverterService(
      * @return A new Course instance.
      */
     fun merge(course: Course, dto: CourseUpdateDTO) = course.run {
-        Course(dto.name ?: name, dto.shortName ?: shortName, dto.public ?: public, secret, dto.subject?.let {
-            subjectRepository.getReferenceById(it)
-        }?: subject, dto.semester?.let { semesterRepository.getReferenceById(it) } ?: semester, weeks, users, id)
+        Course(
+            dto.name ?: name,
+            dto.shortName ?: shortName,
+            dto.public ?: public,
+            secret,
+            dto.subject?.let {
+                subjectRepository.getReferenceById(it)
+            } ?: subject,
+            dto.semester?.let { semesterRepository.getReferenceById(it) } ?: semester,
+            weeks,
+            users,
+            id)
     }
 
     /**
@@ -986,7 +1197,14 @@ class ConverterService(
      * @return A new StudentRating object with updated fields from the DTO, and the current timestamp.
      */
     fun merge(studentRating: StudentRating, dto: StudentRatingUpdateDTO) = studentRating.run {
-        StudentRating(module, student, dto.points ?: points, dto.text ?: text, Timestamp.valueOf(LocalDateTime.now()), id)
+        StudentRating(
+            module,
+            student,
+            dto.points ?: points,
+            dto.text ?: text,
+            Timestamp.valueOf(LocalDateTime.now()),
+            id
+        )
     }
 
     /**

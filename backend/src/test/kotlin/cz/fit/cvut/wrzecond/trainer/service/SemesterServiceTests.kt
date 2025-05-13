@@ -41,7 +41,11 @@ class SemesterServiceTests (
     service: SemesterService,
     @MockBean val fileService: FileService,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
     @MockBean val lessonRepository: LessonRepository,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val userService: UserService,
+
     @Autowired val converterService: ConverterService
 ): StringSpec({
     val userDto = UserFindDTO(1, "testuser", "Test user")

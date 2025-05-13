@@ -1,6 +1,7 @@
 import { WASI, WASIContext, WASIWorkerHost } from '@runno/wasi'
 import untar from 'js-untar'
 import { downloadFileBlob } from '@/plugins/constants'
+import pLimit from 'p-limit';
 
 // CLANG, WASM BEGIN
 
@@ -24,7 +25,7 @@ function runnoFile(path, content) {
 
 async function prepareFS() {
     if (!cachedFs) {
-        const sysrootFetch = await fetch("/sysroot.3.tar")
+        const sysrootFetch = await fetch("/sysroot.6.tar")
         const sysrootTar = await sysrootFetch.arrayBuffer()
         let fs = {}
         await untar(sysrootTar)
@@ -104,6 +105,8 @@ const stackSize = 1024 * 1024 // 1 MB stack
 const libdir = '/lib/wasm32-wasi'
 const crt1 = `${libdir}/crt1.o`
 
+const MAX_CONCURRENT_COMPILATIONS = 4;
+
 const LIB_H_FILE   = '/lib/c/trainer.h'
 const LIB_C_FILE   = '/lib/c/trainer.cpp'
 const LIB_O_FILE   = '/lib/c/trainer.o'
@@ -172,23 +175,24 @@ export const compile = async (codeData) => {
             compileQueue.push([path, objPath])
     }
 
+    const compilationLimiter = pLimit(MAX_CONCURRENT_COMPILATIONS);
     let promises = []
     let output = ""
     let appendOutput
     if (codeData.hideCompilerOutput === true) {
-       appendOutput = () => {} 
+       appendOutput = () => {}
     } else {
        appendOutput = (s) => { output += s }
     }
 
     while (compileQueue.length) {
         const [codeFile, objFile] = compileQueue.pop()
-        promises.push(compileFile(fs, codeFile, objFile, appendOutput)
+        promises.push(compilationLimiter(() => compileFile(fs, codeFile, objFile, appendOutput)
             .then((result) => {
                 if (result.exitCode !== 0)
                     throw new Error(output)
                 return result.fs[objFile]
-            }))
+            })))
     }
 
     // Ref files
@@ -221,12 +225,12 @@ export const compile = async (codeData) => {
 
     while (compileQueue.length) {
         const [codeFile, objFile] = compileQueue.pop()
-        promises.push(compileFile(fs, codeFile, objFile, (s) => { output += s })
+        promises.push(compilationLimiter(() => compileFile(fs, codeFile, objFile, (s) => { output += s })
             .then((result) => {
                 if (result.exitCode !== 0)
                     throw new Error(output)
                 return result.fs[objFile]
-            }))
+            })))
     }
 
     let files = await Promise.all(promises)
@@ -252,7 +256,7 @@ export const link = async (fs, codeData) => {
     let context = new WASIContext({
         env: {},
         args: ['wasm-ld', '-z', `stack-size=${stackSize}`, `-L${libdir}`, crt1, ...objects,
-            '-lc', '-lc++', '-lc++abi', '-lunwind', '-L/lib/clang/16/lib/wasi',
+            '-lc', '-lc++', '-lc++abi-except', '-lunwind-except', '-L/lib/clang/16/lib/wasi',
             '-lclang_rt.builtins-wasm32', '-o', WASM_FILE],
         fs: fs,
         // stdin: undefined,

@@ -24,7 +24,7 @@ import java.time.Instant
  * @property moduleTopicRepository the repository for managing module topics.
  * @property moduleSubjectRepository the repository for managing module subjects.
  * @property moduleRepository the repository for managing modules.
- * @property logRepository the repository for managing logs.
+ * @property logService the Service for managing logs.
  * @property userRepository the repository for managing users.
  */
 @Service
@@ -35,7 +35,7 @@ class LessonModuleService(override val repository: LessonModuleRepository, priva
                           private val moduleTopicRepository: ModuleTopicRepository,
                           private val moduleSubjectRepository: ModuleSubjectRepository,
                           private val moduleRepository: ModuleRepository,
-                          private val logRepository: LogRepository, userRepository: UserRepository)
+                          private val logService: LogService, userRepository: UserRepository)
 : IServiceBase<LessonModule>(repository, userRepository) {
 
     /**
@@ -69,7 +69,7 @@ class LessonModuleService(override val repository: LessonModuleRepository, priva
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
             LessonModuleUserListDTO(
                 converter.toGetDTO(lesson), converter.toFindDTO(lm.module),
-                studentModuleRepository.findByLessonModule(lesson.id, lm.module.id).map { sm ->
+                studentModuleRepository.findByLessonModule(lesson.id, lm.module.id).filter { sm -> lesson.canView(sm.student) }. map { sm ->
                     ModuleUserSingleListDTO(sm.student.id, sm.student.username, sm.student.name,
                         converter.toModuleUserDTO(sm))
                 }
@@ -128,12 +128,12 @@ class LessonModuleService(override val repository: LessonModuleRepository, priva
             val existingStudentModule = studentModuleRepository.findByUserModuleLesson(courseUser.user, module, lesson)
             if (existingStudentModule == null) {
                 val newStudentModule = StudentModule(lesson = lesson,module = module,student = courseUser.user,null,
-                    null,null,true,false,false,null,
+                    null,null,false,false,false,null,
                      emptyList())
                 studentModuleRepository.save(newStudentModule)
             }
         }
-            logRepository.saveAndFlush(createLogEntry(userDto, savedNewLm, "create"))
+            logService.log(userDto, savedNewLm, "create")
             converter.toReadDTO(savedNewLm)
         }
 
@@ -168,7 +168,7 @@ class LessonModuleService(override val repository: LessonModuleRepository, priva
             // Step 3: put new lesson module
             val lm = LessonModule(lesson, newModuleWithId, dto.order, dependsOn = null)
             val newLm = repository.saveAndFlush(lm)
-            logRepository.saveAndFlush(createLogEntry(userDto, newLm, "create"))
+            logService.log(userDto, newLm, "create")
             converter.toReadDTO(newLm)
         }
 
@@ -182,7 +182,7 @@ class LessonModuleService(override val repository: LessonModuleRepository, priva
         = checkAccess(lessonId, moduleId, userDto) { lesson, module, _ ->
             val lm = repository.getByLessonModule(lesson, module) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
             repository.delete(lm)
-            logRepository.saveAndFlush(createLogEntry(userDto, lm, "delete"))
+            logService.log(userDto, lm, "delete")
         }
 
     private fun <X> checkAccess(lessonId: Int, userDto: UserAuthenticateDto?,

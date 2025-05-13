@@ -32,6 +32,7 @@ class CourseService(
     private val userRepository: UserRepository,
     private val lessonRepository: LessonRepository,
     private val logRepository: LogRepository,
+    private val logService: LogService,
     private val studentModuleRepository: StudentModuleRepository,
     private val sandboxUserRepository: SandboxUserRepository,
 ) : IServiceImpl<Course, CourseFindDTO, CourseGetDTO, CourseCreateDTO, CourseUpdateDTO>(repository, userRepository) {
@@ -56,7 +57,7 @@ class CourseService(
         }
         var course = converter.toEntity(dto)
         val testUser = userRepository.getByUsername("test01")
-        logRepository.saveAndFlush(createLogEntry(userDto, course, "create"))
+        logService.log(userDto, course, "create")
         course = repository.saveAndFlush(course)
         if (testUser != null)
             courseUserRepository.saveAndFlush(CourseUser(course, testUser, roleRepository.getByLevel(RoleLevel.STUDENT)))
@@ -76,13 +77,11 @@ class CourseService(
         checkEditAccess(id, userDto) { course, _ ->
             val courseUpdated = repository.save(converter.merge(course, dto))
             val result = converter.toGetDTO(courseUpdated)
-            logRepository.saveAndFlush(createLogEntry(userDto, courseUpdated, "update"))
+            logService.log(userDto, courseUpdated, "update")
             if (dto.teachers != null) {
                 if (courseUserRepository.findRecordsOfTeacherInCourse(course).isNotEmpty()) {
                     courseUserRepository.findRecordsOfTeacherInCourse(course).forEach {
-                        logRepository.saveAndFlush(
-                            createLogEntry(userDto, it, "delete")
-                        )
+                        logService.log(userDto, it, "delete")
                     }
                     courseUserRepository.deleteAll(courseUserRepository.findRecordsOfTeacherInCourse(course))
                     courseUserRepository.flush()
@@ -92,14 +91,12 @@ class CourseService(
                     if (teacher != null) {
                         createSandbox(
                             repository, courseUserRepository, weekRepository, lessonRepository,
-                            roleRepository, subjectRepository, userRepository, logRepository, studentModuleRepository,
-                            sandboxUserRepository,teacher
+                            roleRepository, subjectRepository, userRepository, logRepository, logService,
+                            studentModuleRepository, sandboxUserRepository,teacher
                         )
                         val courseUser = courseUserRepository.getByCourseUser(course, teacher)
                         if (courseUser != null) {
-                            logRepository.saveAndFlush(
-                                createLogEntry(userDto, courseUser, "delete")
-                            )
+                            logService.log(userDto, courseUser, "delete")
                             courseUserRepository.delete(courseUser)
                         }
                     }
@@ -112,7 +109,7 @@ class CourseService(
                     )
                 })
                 courseUsers.forEach {
-                    logRepository.saveAndFlush(createLogEntry(userDto, it, "create"))
+                    logService.log(userDto, it, "create")
                 }
             }
             result
@@ -133,7 +130,7 @@ class CourseService(
         if (course.weeks.isNotEmpty() || course.users.isNotEmpty())
             throw ResponseStatusException(HttpStatus.CONFLICT)
         repository.delete(course)
-        logRepository.saveAndFlush(createLogEntry(userDto, course, "delete"))
+        logService.log(userDto, course, "delete")
     }
 
     /**
@@ -192,7 +189,7 @@ class CourseService(
         val user = getUser(userDto)
         val role = roleRepository.getByLevel(RoleLevel.STUDENT)
         val courseUser = courseUserRepository.saveAndFlush(CourseUser(course, user, role))
-        logRepository.saveAndFlush(createLogEntry(userDto, courseUser, "create"))
+        logService.log(userDto, courseUser, "create")
         converter.toGetDTO(courseUser.course)
     }
 
@@ -223,7 +220,7 @@ class CourseService(
     fun setCourseSecret(id: Int, dto: CourseSecretDTO, userDto: UserAuthenticateDto?) =
         checkEditAccess(id, userDto) { course, _ ->
             val updatedCourse = repository.saveAndFlush(course.copy(secret = dto.secret))
-            logRepository.saveAndFlush(createLogEntry(userDto, updatedCourse, "update"))
+            logService.log(userDto, updatedCourse, "update")
             converter.toGetDTO(updatedCourse)
         }
 
@@ -251,6 +248,7 @@ class CourseService(
             subjectRepository,
             userRepository,
             logRepository,
+            logService,
             studentModuleRepository,
             sandboxUserRepository,
             teacher
@@ -299,6 +297,7 @@ class CourseService(
             subjectRepository: SubjectRepository,
             userRepository: UserRepository,
             logRepository: LogRepository,
+            logService: LogService,
             studentModuleRepository: StudentModuleRepository,
             sandboxUserRepository: SandboxUserRepository,
             teacher: User
@@ -317,6 +316,7 @@ class CourseService(
                     userRepository,
                     lessonRepository,
                     logRepository,
+                    logService,
                     studentModuleRepository,
                     sandboxUserRepository
                 )
@@ -343,7 +343,7 @@ class CourseService(
                 val lesson = lessonRepository.saveAndFlush(
                     Lesson(
                         "Sandbox", false, 0, null, null, "Sandbox",
-                        LessonType.INFORMATION, null, weekSandbox, emptyList(), emptyList(), emptyList(),0
+                        LessonType.INFORMATION, null,null, weekSandbox, emptyList(), emptyList(), emptyList(),0
                     )
                 )
                 instance.callCreateLog(lesson, "create")

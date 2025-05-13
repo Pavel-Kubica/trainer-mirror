@@ -35,7 +35,7 @@ data class User(
     var testMode: Boolean = false,
 
     @Column(nullable = true)
-    var gitlabToken: String = "",
+    var gitlabToken: String? = "",
 
 ) : IEntity(id) {
 

@@ -1,6 +1,5 @@
 <script setup>
 import { inject } from 'vue'
-import { onBeforeRouteLeave } from 'vue-router'
 import * as Nav from '@/service/nav'
 import SubjectList from '@/components/SubjectList.vue';
 import {useUserStore} from "@/plugins/store";
@@ -9,12 +8,8 @@ import SubjectListLeftDrawer from "@/components/subjects/SubjectListLeftDrawer.v
 const appState = inject('appState')
 const userStore = useUserStore()
 appState.value.navigation = [new Nav.CourseList(), new Nav.SubjectsList(userStore.semester)]
-
 appState.value.leftDrawer = true
-onBeforeRouteLeave((to) => {
-    if (['course-detail', 'course-user'].includes(to.name)) return
-    appState.value.leftDrawer = undefined
-})
+
 </script>
 
 <template>

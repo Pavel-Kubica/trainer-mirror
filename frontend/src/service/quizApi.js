@@ -155,7 +155,6 @@ export default {
     },
 
     async putQuizQuestion(quizId, questionId, question) {
-        console.log("put Quiz Question")
         const response = await axios.put(`/quizzes/${quizId}/questions/${questionId}`, question)
         return response.data
     },

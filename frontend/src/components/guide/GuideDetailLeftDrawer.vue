@@ -2,19 +2,13 @@
 import * as Nav from '@/service/nav'
 import {ref} from "vue";
 import { getErrorMessage } from '@/plugins/constants'
-import guides from "@/resources/guides.js"
+
+defineProps(['guides'])
 
 const error = ref(null)
 
 import { useLocale } from 'vuetify'
-import {useUserStore} from "@/plugins/store";
 const { t } = useLocale()
-
-
-const userStore = useUserStore();
-const getGuideName = (guide) => {
-  return userStore.locale === 'customEn' ? guide.nameEn : guide.nameCz;
-};
 
 </script>
 
@@ -31,7 +25,7 @@ const getGuideName = (guide) => {
       </v-list-item>
       <v-list-item
         v-for="guide in guides" :key="guide.id"
-        :title="getGuideName(guide)"
+        :title="t(guide.name)"
         :to="new Nav.GuideDetail(guide).routerPath()" />
       <v-list-item v-if="error" :title="getErrorMessage(t, error)" />
     </v-list>

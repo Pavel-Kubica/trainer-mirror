@@ -21,6 +21,16 @@ interface StudentModuleRequestRepository: IRepository<StudentModuleRequest> {
     fun getByStudentModule(sm: StudentModule, onlyUnsatisfied: Boolean = false) : StudentModuleRequest?
 
     /**
+     * Retrieves all StudentModuleRequests linked to the specified StudentModule.
+     *
+     * @param sm The StudentModule associated with the request to be fetched.
+     * @param onlyUnsatisfied Boolean indicating whether to fetch only unsatisfied requests.
+     * @return all StudentModuleRequests that match the criteria
+     */
+    @Query("SELECT smr FROM StudentModuleRequest smr WHERE smr.studentModule = :sm AND (smr.satisfied = false OR :onlyUnsatisfied = false) ORDER BY smr.requestedOn DESC")
+    fun getAllByStudentModule(sm: StudentModule, onlyUnsatisfied: Boolean = false) : List<StudentModuleRequest>
+
+    /**
      * Retrieves the most recent satisfied StudentModuleRequest corresponding to the given StudentModule.
      *
      * @param sm The StudentModule object associated with the request to fetch.

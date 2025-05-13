@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import cz.fit.cvut.wrzecond.trainer.service.LogService
 
 /**
  * Service class responsible for managing questions.
@@ -29,6 +30,7 @@ import org.springframework.web.server.ResponseStatusException
  * @property questionSubjectRepository Manages the association between questions and subjects.
  * @property saRepo Repository for handling student assignments related to questions.
  * @property logRepository Repository for handling logging
+ * @property logService Service for handling logging
  * @property quizroomStudentRepo Manages the association between quiz rooms and students.
  * @property studentModuleRepo Manages studentModules and related operations.
  * @property lessonRepo Manages lessons and related operations.
@@ -47,6 +49,7 @@ class QuestionService(
     private val questionSubjectRepository: QuestionSubjectsRepo,
     private val saRepo: StudAnswerRepo,
     private val logRepository: LogRepository,
+    private val logService: LogService,
     private val quizroomStudentRepo: QuizroomStudentRepo,
     private val studentModuleRepo: StudentModuleRepository,
     private val lessonRepo: LessonRepository,
@@ -71,7 +74,7 @@ class QuestionService(
         if (!authorizationService.isTrusted(user) && q.author.username != user.username)
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         repository.delete(q)
-        logRepository.saveAndFlush(createLogEntry(userDto, q, "delete"))
+        logService.log(userDto, q, "delete")
     }
 
     override fun create(dto: QuestionCreateDTO, userDto: UserAuthenticateDto?)= tryCatch {
@@ -84,7 +87,7 @@ class QuestionService(
         if (!authorizationService.isTrusted(user) && q.author.username != user.username)
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         val ret = repository.saveAndFlush(converter.merge(q, dto))
-        logRepository.saveAndFlush(createLogEntry(userDto, ret, "update"))
+        logService.log(userDto, ret, "update")
         converter.toGetDTO(ret)
     }
 

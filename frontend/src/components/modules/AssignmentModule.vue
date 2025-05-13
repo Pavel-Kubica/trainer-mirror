@@ -3,9 +3,9 @@ import { ref, onMounted, inject, provide } from 'vue'
 import { TAB_ASSIGNMENT, TAB_MODULE_DETAIL } from '@/plugins/constants'
 import { useDisplay, useLocale } from 'vuetify'
 import { studentModuleApi } from '@/service/api'
-import ModuleRequestDiv from '@/components/lesson/ModuleRequestDiv.vue'
 import AssignmentImagePreviewCard from "@/components/modules/assignment/AssignmentImagePreviewCard.vue";
 import AssignmentModuleBottomOverlay from "@/components/modules/assignment/AssignmentModuleBottomOverlay.vue";
+import ModuleRequestDrawer from "@/components/lesson/ModuleRequestDrawer.vue";
 
 const props = defineProps(['teacher'])
 const lesson = inject('lesson')
@@ -69,12 +69,12 @@ onMounted(async () => {
     <div class="d-flex flex-column fill-height justify-space-between">
       <span v-if="teacher" />
       <AssignmentImagePreviewCard v-else-if="fileDownloadedUrl" :title="t('$vuetify.tab_preview')" />
-      <ModuleRequestDiv v-if="fileDownloadedUrl" />
+      <ModuleRequestDrawer v-if="fileDownloadedUrl" />
     </div>
   </v-navigation-drawer>
   <v-card v-else class="mt-4 mb-2">
     <span v-if="teacher" />
     <AssignmentImagePreviewCard v-else-if="fileDownloadedUrl" :title="t('$vuetify.tab_preview')" />
-    <ModuleRequestDiv v-if="fileDownloadedUrl" />
+    <ModuleRequestDrawer v-if="fileDownloadedUrl" />
   </v-card>
 </template>

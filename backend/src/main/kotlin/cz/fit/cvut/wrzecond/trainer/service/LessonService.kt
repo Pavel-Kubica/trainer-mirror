@@ -18,15 +18,23 @@ import java.time.Instant
  * @param lessonModuleRepository The repository for managing LessonModule entities.
  * @param studentModuleRepository The repository for managing StudentModule entities.
  * @param weekRepository The repository for managing Week entities.
- * @param logRepository The repository for managing Log entities.
+ * @param logService The service for managing Log entities.
  * @param userRepository The repository for managing User entities.
  */
 @Service
 class LessonService (override val repository: LessonRepository, private val courseRepository: CourseRepository,
                      private val lessonModuleRepository: LessonModuleRepository,
+                     private val lessonModuleService: LessonModuleService,
                      private val studentModuleRepository: StudentModuleRepository,
+                     private val moduleRepository: ModuleRepository,
+                     private val scoringRuleRepository: ScoringRuleRepository,
+                     private val scoringRuleModuleRepository: ScoringRuleModuleRepo,
                      private val weekRepository: WeekRepository,
-                     private val logRepository: LogRepository, userRepository: UserRepository)
+                     private val logService: LogService,
+                     private val logRepository: LogRepository,
+                     private val userRepository: UserRepository,
+                     private val srRepository: ScoringRuleRepository,
+                     private val srmRepository: ScoringRuleModuleRepo)
 : IServiceImpl<Lesson, LessonFindDTO, LessonGetDTO, LessonCreateDTO, LessonUpdateDTO>(repository, userRepository){
 
     /**
@@ -56,7 +64,7 @@ class LessonService (override val repository: LessonRepository, private val cour
         if (!week.canEdit(user))
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         val lesson = repository.saveAndFlush(converter.toEntity(dto, week))
-        logRepository.saveAndFlush(createLogEntry(userDto, lesson, "create"))
+        logService.log(userDto, lesson, "create")
         converter.toGetDTO(lesson)
     }
 
@@ -71,7 +79,7 @@ class LessonService (override val repository: LessonRepository, private val cour
     override fun update(id: Int, dto: LessonUpdateDTO, userDto: UserAuthenticateDto?)
         = checkEditAccess(id, userDto) { lesson, _ ->
             val updatedLesson = repository.saveAndFlush(converter.merge(lesson, dto))
-            logRepository.saveAndFlush(createLogEntry(userDto, updatedLesson, "update"))
+            logService.log(userDto, updatedLesson, "update")
             converter.toGetDTO(updatedLesson)
         }
 
@@ -85,7 +93,7 @@ class LessonService (override val repository: LessonRepository, private val cour
     override fun delete(id: Int, userDto: UserAuthenticateDto?): Unit
         = checkEditAccess(id, userDto) { lesson, _ ->
             repository.delete(lesson)
-            logRepository.saveAndFlush(createLogEntry(userDto, lesson, "delete"))
+            logService.log(userDto, lesson, "delete")
         }
 
     /**
@@ -165,19 +173,99 @@ class LessonService (override val repository: LessonRepository, private val cour
             Timestamp.from(Instant.now()), Timestamp.from(Instant.now()), newCourse, emptyList()))
 
             // Step 1: create the lesson (hidden, without lock code)
-            val newLesson = repository.saveAndFlush(lesson.copy(hidden = true, lockCode = null, week = week, modules = emptyList(), id = 0))
-            logRepository.saveAndFlush(createLogEntry(userDto, newLesson, "create"))
+            val newLesson = repository.saveAndFlush(lesson.copy(hidden = true, lockCode = null, week = week, modules = emptyList(), scoringRules = emptyList(), students = emptyList(), id = 0))
+            logService.log(userDto, newLesson, "create")
+
+            val allCourseUsers = newLesson.week.course.users
 
             // Step 2: copy the modules
-            lessonModuleRepository.saveAllAndFlush(lesson.modules.map { lm ->
+           lesson.modules.map { lm ->
                 // Keep the order, dependency and module, but change the lesson
-                LessonModule(newLesson, lm.module, lm.order, lm.dependsOn)
+                val newLm = lessonModuleRepository.saveAndFlush(LessonModule(newLesson,
+                    lm.module, lm.order, lm.dependsOn))
+                logService.log(userDto, newLm, "create")
+               studentModuleRepository.saveAllAndFlush( allCourseUsers.filter {
+                   studentModuleRepository.findByUserModuleLesson(it.user, newLm.module, newLm.lesson)==null
+               }.map{u2 ->
+                   StudentModule(lesson = newLm.lesson, module = newLm.module, student = u2.user, null,
+                   null, null, true, false, false, null,
+                   emptyList()
+               )
+               }).map{logService.log(userDto, it, "create")}
+           }
+
+        // Step 3: copy the rules
+        lesson.scoringRules.map{sr ->
+            val newRule = srRepository.saveAndFlush(ScoringRule(sr.name,sr.shortName,
+                sr.description,sr.points,sr.until,sr.toComplete,newLesson, emptyList()))
+            logService.log(userDto, newRule, "create")
+            srmRepository.saveAllAndFlush(sr.modules.map{srm ->
+                ScoringRuleModule(srm.module,newRule)
             }).map {
-                logRepository.saveAndFlush(createLogEntry(userDto, it, "create"))
+                logService.log(userDto, it, "create")
             }
+        }
+
+        // Step 4: return new lesson with modules
+        converter.toGetDTO(newLesson, user)
+    }
+    /**
+     * Clone lesson (with all the modules) to another week
+     * @property id lesson id to be copied
+     * @property weekId week to copy into
+     * @property userDto teacher who is copying the lesson (must have edit access)
+     */
+    @Transactional
+    fun cloneLessonToWeek(id: Int, weekId: Int, userDto: UserAuthenticateDto?)
+            = checkEditAccess(id, userDto) { lesson, user ->
+        // Check edit rights
+        val week = weekRepository.getReferenceById(weekId)
+        if (!week.canEdit(user))
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+
+        // Step 1: create the lesson (hidden, without lock code)
+        val newLesson = repository.saveAndFlush(lesson.copy(lockCode = null, week = week, modules = emptyList(), students = emptyList(), scoringRules = emptyList(), id = 0))
+        logService.log(userDto, newLesson, "create")
+
+        // Step 2: copy modules and scoring rules
+        lesson.modules.forEach { lm ->
+            lessonModuleService.putLessonModule(newLesson.id, lm.module.id, LessonModuleEditDTO(lm.order, lm.dependsOn?.id), userDto)
+        }
+
+        lesson.scoringRules.map { rule ->
+            val newRule = scoringRuleRepository.saveAndFlush(rule.copy(lesson = newLesson, modules = emptyList(), id = 0))
+            logService.log(userDto, newRule, "create")
+            scoringRuleModuleRepository.saveAllAndFlush(rule.modules.map { rm ->
+                ScoringRuleModule(rm.module, newRule)
+            }).map {
+                logService.log(userDto, it, "create")
+            }
+        }
+
 
         // Step 3: return new lesson with modules
         converter.toGetDTO(newLesson, user)
+    }
+
+    /**
+     * Updates lesson order and week
+     * @property id of week to update lessons in
+     * @property dto lesson ids to update
+     * @property userDto user performing request
+     */
+    fun editModuleOrder(id: Int, dto: LessonModuleOrderDTO, userDto: UserAuthenticateDto?) : Unit
+            = checkEditAccess(id, userDto) { lesson, _ ->
+        lessonModuleRepository.saveAllAndFlush(dto.moduleIds
+            .map {
+                val module = moduleRepository.getReferenceById(it)
+                val lessonModule = lessonModuleRepository.getByLessonModule(lesson, module)
+                if (lessonModule == null || lessonModule.lesson.id != id) throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+                else lessonModule
+            }
+            .mapIndexed { ix, lessonModule -> lessonModule.copy(order = ix) }
+        ).map {
+            logService.log(userDto, it, "update")
+        }
     }
 
 }

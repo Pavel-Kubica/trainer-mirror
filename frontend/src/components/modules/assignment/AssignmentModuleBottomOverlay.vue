@@ -69,7 +69,7 @@ const deleteFile = (e) => {
       <v-btn v-if="fileDownloadedUrl" icon variant="text" @click="deleteFile">
         <v-icon icon="mdi-delete" />
         <v-tooltip activator="parent" location="top">
-          {{ t('$vuetify.dialog_delete') }}
+          {{ t('$vuetify.action_delete') }}
         </v-tooltip>
       </v-btn>
     </template>

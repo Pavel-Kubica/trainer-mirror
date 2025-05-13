@@ -19,6 +19,6 @@ const hideNotification = (notification, index = -1) => {
   <div class="notification-list" style="position: fixed; top: 64px; right: 0; cursor: pointer; z-index: 9999">
     <HideableAlert v-for="(notification, ix) in appState.notifications" :key="notification.title"
                    :notification="notification" :on-click="() => clickNotification(notification, ix)"
-                   :on-hide="() => hideNotification(notification)" :timeout="5000" />
+                   :on-hide="() => hideNotification(notification)" :timeout="3500" />
   </div>
 </template>

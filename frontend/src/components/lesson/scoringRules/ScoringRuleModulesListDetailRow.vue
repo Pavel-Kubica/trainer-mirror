@@ -1,21 +1,12 @@
 <script setup>
 import * as Nav from '@/service/nav'
 import TooltipIconButton from "@/components/custom/TooltipIconButton.vue";
-
 import {provide, ref} from "vue";
-import {useUserStore} from "@/plugins/store";
 
-const userStore = useUserStore()
 const props = defineProps(['module','removeModule','edit','lesson','studentModule'])
 const displayDeleteDialog = ref(false)
 //const emit = defineEmits(['updateModule'])
 provide('displayDeleteDialog', displayDeleteDialog)
-
-const canEdit = (module) => {
-  return module.author === userStore.user.username || module.editors.includes(userStore.user.username) ||
-      userStore.isAdmin || userStore.isGuarantor
-}
-
 
 </script>
 <template>
@@ -37,10 +28,7 @@ const canEdit = (module) => {
         <span>{{ module.name }}</span>
         <div style="display: flex; gap: 10px;">
           <!-- Reduced gap for icons -->
-          <router-link v-if="canEdit(module) && edit" class="text-decoration-none" :to="new Nav.ModuleEdit(module).routerPath()">
-            <TooltipIconButton icon="mdi-pencil" style="font-size: 16px; width: 32px; height: 20px;" />
-          </router-link>
-          <router-link v-if="edit" class="text-decoration-none" :to="new Nav.ModuleRead(module).routerPath()">
+          <router-link v-if="edit" class="text-decoration-none" :to="new Nav.LessonModuleEdit(lesson, module).routerPath()" target="_blank">
             <TooltipIconButton icon="mdi-eye" tooltip="$vuetify.lesson_edit_modules_read" color="blue" style="font-size: 16px; width: 32px; height: 20px;" />
           </router-link>
           <TooltipIconButton v-if="edit" icon="mdi-delete" tooltip="$vuetify.rule_edit_modules_remove" color="red" style="font-size: 16px; width: 32px; height: 20px;" @click="removeModule(module)" />

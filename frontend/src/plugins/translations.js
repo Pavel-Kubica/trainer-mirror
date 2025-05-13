@@ -6,7 +6,6 @@ export const customCs = {
 
     // General
     dialog_close: "Zavřít",
-    dialog_delete: "Smazat",
     dialog_trash: "Zahodit",
     dialog_save: "Uložit",
     dialog_try_again: "Zkusit znovu",
@@ -22,6 +21,9 @@ export const customCs = {
     action_choose: "Vybrat",
     action_change: "Změnit",
     action_search: "Hledat",
+    action_generate: "Vygenerovat",
+    action_reset: "Resetovat",
+    irreversible_action: "Tato akce je nevratná.",
     role_teacher: "Učitel",
     role_student: "Student",
 
@@ -40,9 +42,9 @@ export const customCs = {
     error_bad_request: "Neplatný požadavek",
     error_bad_response: "Server je dočasně nedostupný",
     error_concurrent_edit: "Došlo k úpravě jiným uživatelem. Uložte si úpravy bokem a obnovte stránku.",
-    error_deleting_lesson: "Chyba při mazání lekce",
-    error_deleting_week: "Chyba při mazání týdne",
-    error_deleting_topic: "Chyba při mazání tématu",
+    error_deleting_lesson: "Chyba při odstraňování lekce",
+    error_deleting_week: "Chyba při odstraňování týdne",
+    error_deleting_topic: "Chyba při odstraňování tématu",
 
     // TooltipEmojiSpan
     tooltip_lesson_timed: "Včasné vyřešení do {0}",
@@ -68,16 +70,16 @@ export const customCs = {
     semester_start: "Začátek semestru",
     semester_end: "Konec semestru",
     semester_edit: "Editovat semestr",
-    semester_delete: "Smazat semestr",
-    semester_delete_question: "Opravdu si přejete smazat semestr",
+    semester_delete: "Odstranit semestr",
+    semester_delete_question: "Opravdu si přejete odstranit semestr",
     semester_date_required: "Je potřeba zadat datum",
-    semester_cant_delete_courses_present: "Semestr obsahuje aspoň jeden kurz a proto ho nelze smazat",
+    semester_cant_delete_courses_present: "Semestr obsahuje aspoň jeden kurz a proto ho nelze odstranit",
     semester_creation_title: "Vytvoření semestru",
     semester_creation_success_text: "Semestr úspěšně vytvořen",
     semester_edit_title: "Editace semestru",
     semester_edit_success_text: "Semestr úspěšně editován",
-    semester_deletion_title: "Smazání semestru",
-    semester_deletion_success_text: "Semestr úspěšně smazán",
+    semester_deletion_title: "Odstranění semestru",
+    semester_deletion_success_text: "Semestr úspěšně odstraněn",
 
     // Guide
     guides: "Návody",
@@ -108,10 +110,10 @@ export const customCs = {
     topic_list_modules: "{0} modulů",
 
     //TopicListDeleteDialog
-    topic_list_delete_title: "Smazat téma",
-    topic_list_delete_confirm: "Opravdu chcete smazat téma",
-    topic_list_delete_success_title: "Téma smazáno",
-    topic_list_delete_success_text: "Téma bylo úspěšně smazáno.",
+    topic_list_delete_title: "Odstranit téma",
+    topic_list_delete_confirm: "Opravdu chcete odstranit téma",
+    topic_list_delete_success_title: "Téma odstraněno",
+    topic_list_delete_success_text: "Téma bylo úspěšně odstraněno.",
 
     //TopicListEditDialog
     topic_edit_dialog_create: "Vytvořit téma",
@@ -133,10 +135,13 @@ export const customCs = {
     course_join: "Připojit se ke kurzu",
     course_join_short: "Připojit se",
     course_join_code: "Kód",
-    course_join_invalid_code: "Neplatný kód",
+    course_new_join_code: "Nový kód",
+    course_save_join_code: "ULOŽIT",
+    course_join_invalid_code: "Neplatný kód (musí být jiný pro každý kurz)",
     course_list_role_teacher: " (Učitel)",
     course_list_role_student: " ",
     course_list_lesson_completed: "{0} / {1} lekcí",
+    course_list_lesson_completed_tooltip: "{0} lekcí vyřešeno z {1} řešitelných",
     course_list_semesters: "Kurzy ({0})",
     course_list_all_semesters: "Všechny",
 
@@ -148,9 +153,8 @@ export const customCs = {
     active_quiz: "Aktivní kvíz",
 
     // CourseDetail
-    course_detail_title: "Lekce",
     course_detail_left_drawer_course_list: "Přehled kurzů",
-    course_detail_header_course_secret: "Zobrazit kód",
+    course_detail_header_course_secret: "Kód pro připojení",
     course_detail_header_users: "Uživatelé",
     course_detail_header_new_lesson: "Nová lekce",
     course_detail_no_weeks: "Tento kurz neobsahuje žádné týdny.",
@@ -163,31 +167,43 @@ export const customCs = {
     hidden_module_count: "Lekce obsahuje skryté moduly",
 
     // CourseDetailDeleteDialog
-    course_detail_lesson_delete_title: "Smazat lekci",
-    course_detail_lesson_delete_confirm: "Opravdu si přejete smazat lekci",
-    course_detail_lesson_delete_success_title: "Lekce smazána",
-    course_detail_lesson_delete_success_text: "Lekce byla úspěšně smazána.",
-    course_detail_week_delete_title: "Smazat týden",
-    course_detail_week_delete_confirm: "Opravdu si přejete smazat týden",
-    course_detail_week_delete_success_title: "Týden smazán",
-    course_detail_week_delete_success_text: "Týden byl úspěšně smazán.",
+    course_detail_lesson_delete_title: "Odstranit lekci",
+    course_detail_lesson_delete_confirm_p1: "Opravdu si přejete odstranit lekci ",
+    course_detail_lesson_delete_confirm_p2: "?\nJejí moduly nebudou odstraněny.",
+    course_detail_lesson_delete_success_title: "Lekce odstraněna",
+    course_detail_lesson_delete_success_text: "Lekce byla úspěšně odstraněna.",
+    course_detail_week_delete_title: "Odstranit týden",
+    course_detail_week_delete_confirm_p1: "Opravdu si přejete odstranit týden ",
+    course_detail_week_delete_confirm_p2: " a všechny jeho lekce?",
+    course_detail_week_delete_success_title: "Týden odstraněn",
+    course_detail_week_delete_success_text: "Týden byl úspěšně odstraněn.",
 
     // CourseDetailCopyDialog
+    course_detail_copy_search_courses: "Kurzy",
+    course_detail_copy_search_name: "Název",
+    course_detail_copy_search_lesson_types: "Typy lekcí",
+    course_detail_copy_no_courses: "Jste učitelem pouze v tomto kurzu.",
     course_detail_lesson_copy_title: "Zkopírovat lekci",
     course_detail_lesson_copy_tooltip: "Zkopírovat do kurzu",
     course_detail_lesson_copy_success_title: "Lekce zkopírována",
     course_detail_lesson_copy_success_text: "Lekce byla úspěšně zkopírována.",
+    course_detail_lesson_copy_no_matches: "Žádná lekce neodpovídá filtru.",
     course_detail_week_copy_title: "Zkopírovat týden",
     course_detail_week_copy_tooltip: "Zkopírovat do kurzu",
     course_detail_week_copy_success_title: "Týden zkopírován",
     course_detail_week_copy_success_text: "Týden byl úspěšně zkopírován.",
+    course_detail_week_copy_no_matches: "Žádný týden neodpovídá filtru.",
 
     // CourseDeleteDialog
-    course_delete_title: "Smazat kurz",
-    course_delete_confirm: "Opravdu si přejete smazat kurz",
-    course_delete_success_title: "Kurz smazán",
-    course_delete_success_text: "Kurz byl úspěšně smazán.",
-    error_deleting_course: "Chyba při mazání kurzu",
+    course_delete_title: "Odstranit kurz",
+    course_delete_confirm: "Opravdu si přejete odstranit kurz",
+    course_delete_success_title: "Kurz odstraněn",
+    course_delete_success_text: "Kurz byl úspěšně odstraněn.",
+    error_deleting_course: "Chyba při odstraňování kurzu",
+
+    // CourseJoinCodeDialog
+    course_current_code: "Aktuální kód",
+    course_no_code_set: "Tento kurz nemá nastavený žádný kód.",
 
     //CourseCreateEdit
     course_create_edit_title:"Informace",
@@ -197,7 +213,7 @@ export const customCs = {
     course_create_edit_short_name:"Krátký název",
     course_create_edit_teachers_all:"Všichni cvičící",
     course_create_edit_teachers:"Cvičící",
-    course_create_edit_add_teachers:"Přidat cvičících",
+    course_create_edit_add_teachers:"Přidat cvičící",
     course_create_edit_code:"Heslo pro připojení",
     course_create_edit_public:"Veřejný kurz",
     course_create_edit_no_users:"Žadné uživatele nejsou",
@@ -211,12 +227,12 @@ export const customCs = {
     course_detail_lesson_row_student_list: "Přehled studentů a modulů",
 
     // CourseDeleteDialog
-    course_delete: "Smazat kurz",
-    course_delete_question: "Opravdu si přejete smazat kurz",
-    course_deletion_title: "Smazání kurzu",
-    course_cant_delete_weeks_present: "Kurz obsahuje aspoň jeden týden a proto ho nelze smazat",
-    course_cant_delete_users_present: "Kurz obsahuje aspoň jednoho uživatele a proto ho nelze smazat",
-    course_deletion_success_text: "Kurz úspěšně smazán",
+    course_delete: "Odstranit kurz",
+    course_delete_question: "Opravdu si přejete odstranit kurz",
+    course_deletion_title: "Odstranění kurzu",
+    course_cant_delete_weeks_present: "Kurz obsahuje aspoň jeden týden a proto ho nelze odstranit",
+    course_cant_delete_users_present: "Kurz obsahuje aspoň jednoho uživatele a proto ho nelze odstranit",
+    course_deletion_success_text: "Kurz úspěšně odstraněn",
 
     // LessonDetailLeftDrawer
     lesson_detail_intro_text: "Úvodní text",
@@ -231,9 +247,28 @@ export const customCs = {
     module_locked_depends: "Tento modul se odemkne až po splnění modulu \"{0}\"",
 
     // LessonModuleDetail
+    lesson_edit_modules_remove: "Odebrat modul",
+    lesson_edit_modules_empty: "Žádné moduly",
+    lesson_edit_modules_add: "Přidat existující modul",
+    lesson_edit_modules_create: "Vytvořit nový modul",
+    lesson_edit_modules_read: "Zobrazit nastavení modulu",
+
+    solutions: "Řešení",
+    solutions_for_module: "Řešení modulu",
+    solutions_by_user: "Řešení od",
+    progress_overview: "Přehled postupů",
+    module_view: "Zobrazit",
+    module_edit: "Upravit",
+    module_remove_dialog_text_p1: "Opravdu chcete odebrat modul ",
+    module_remove_dialog_text_p2: " z lekce?",
+    module_remove_dialog_text_p3: `Budete moci jej kdykoliv vrátit v menu "Přidat existující modul".`,
+    module_remove_success_title: "Modul odebrán",
+    module_remove_success_text: "Modul byl úspěšně odebrán z lekce.",
+    module_remove_failure_title: "Odebírání selhalo",
+    module_remove_failure_text: "Při odebírání modulu z lekce nastala chyba: {0}",
     tab_assignment: "ZADÁNÍ",
     tab_showcase: "UKÁZKA",
-    tab_rating: "Hodnocení studentů",
+    tab_rating: "Studentská hodnocení",
     tab_rating_empty: "Žadná hodnocení ještě nejsou",
     rating_btn: "TVOJE HODNOCENÍ",
     tab_preview: "NÁHLED",
@@ -250,7 +285,7 @@ export const customCs = {
     rating_edit_dialog_edit: "Vyjádřete svůj názor",
 
     // Subjects
-    subject_list: "Předměty",
+    subject_list: "Předměty a kurzy",
     subject_list_drawer: "Semestry",
     subject_detail_list: "Předměty",
     subject_course_num: "kurz(ů)",
@@ -278,9 +313,9 @@ export const customCs = {
     subject_create_notification_text: "Předmět byl úspěšně vytvořen.",
 
     subject_none:  "V tomto semestru není žádný předmět.",
-    subject_delete: "Smazání předmětu",
-    subject_delete_question: "Opravdu si přejete smazat předmět",
-    subject_delete_courses_present: "Předmět obsahuje aspoň jeden kurz a proto ho nelze smazat",
+    subject_delete: "Odstranění předmětu",
+    subject_delete_question: "Opravdu si přejete odstranit předmět",
+    subject_delete_courses_present: "Předmět obsahuje aspoň jeden kurz a proto ho nelze odstranit",
 
     // LessonCreateEdit
     unsaved_changes_dialog_title: "Neuložené změny",
@@ -294,7 +329,10 @@ export const customCs = {
     lesson_edit_type: "Typ",
     lesson_edit_time_start: "Začátek",
     lesson_edit_time_end: "Konec",
+    lesson_edit_reset_time: "Použít výchozí",
+    lesson_edit_reset_time_tooltip: "Použít začátek a konec týdne",
     lesson_edit_hidden: "Skrýt před studenty",
+    lesson_edit_reference_access: "Referenční řešení přístupná od",
 
     lesson_edit_tab_information: "Informace",
     lesson_edit_tab_text: "Úvodní text",
@@ -314,20 +352,13 @@ export const customCs = {
     lesson_edit_modules_sandbox_success: "Modul byl úspěšně přidán do pískoviště",
     lesson_edit_modules_sandbox_title: "Testovani modulu",
 
-
-    lesson_edit_modules_remove: "Odebrat z lekce",
-    lesson_edit_modules_empty: "Žádné moduly",
-    lesson_edit_modules_add: "Přidat existující modul",
-    lesson_edit_modules_create: "Vytvořit nový modul",
-    lesson_edit_modules_read: "Zobrazit modul",
-
-
     //Bodovací pravidla
     lesson_edit_rules_create: "Vytvořit nové pravidlo",
     lesson_edit_rules_edit: "Upravit",
     lesson_edit_rules_edit_description: "Upravit popis",
-    lesson_edit_rules_delete: "Smazání bodovacího pravidla",
-    lesson_edit_rule_delete_question: "Opravdu chcete smazat bodovací pravidlo",
+    lesson_edit_rules_delete: "Odstranění bodovacího pravidla",
+    lesson_edit_rule_delete_text_p1: "Opravdu chcete odstranit bodovací pravidlo ",
+    lesson_edit_rule_delete_text_p2: "?",
     lesson_edit_rule_until: "do:",
     lesson_edit_rule_to_complete: "k dokončení:",
     lesson_edit_rule_points: "b.",
@@ -386,6 +417,7 @@ export const customCs = {
     week_edit_from: "Začátek",
     week_edit_until: "Konec",
     week_new: "Nový týden",
+    week_copy: "Zkopírovat týden",
 
     // ModuleCreateEdit
     module_menu_title_create: "Vytvořit modul",
@@ -396,10 +428,10 @@ export const customCs = {
     module_create_comment_title: "Vytvoření komentáře",
     module_comment_input: "Napište svůj názor",
     module_comment_name: "Komentář",
-    module_delete_comment_success: "Váš komentář byl úspěšně smazán",
+    module_delete_comment_success: "Váš komentář byl úspěšně odstraněn",
     module_create_comment_too_long: "Váš komentář je příliš dlouhý nebo kratký",
-    module_delete_title: "Smazání komentáře",
-    module_delete_question: "Opravdu chcete smazat svůj komentář",
+    module_delete_comment_title: "Odstranění komentáře",
+    module_delete_comment_text: "Opravdu chcete odstranit svůj komentář",
     module_show_more: "UKAŽ VÍCE KOMENTÁŘŮ",
     module_show_less: "UKAŽ MÉNĚ KOMENTÁŘŮ",
     module_update_title: "Úprava komentáře",
@@ -412,12 +444,14 @@ export const customCs = {
     module_type_quiz: "Kvízový modul",
     module_type_assignment: "Assignment modul",
     module_type_selftest: "Samotestový modul",
+    module_edit_guide_link: "Zobrazit návod",
     module_edit_depend: "Závislost",
     module_edit_no_depend: "(Žádná závislost)",
     module_edit_author: "Autor",
     module_edit_editors: "Spolueditoři",
     module_edit_editors_all: "Všichni učitelé",
     module_edit_difficulty: "Obtížnost",
+    module_edit_not_allowed: "Modul musí mít jméno, typ a předmět",
     module_difficulty_none: "Bez hodnocení obtížnosti",
     module_difficulty_beginner: "Začátečník",
     module_difficulty_easy: "Lehký",
@@ -449,22 +483,28 @@ export const customCs = {
     module_list_header_type: "Typ",
     module_list_header_topics: "Témata",
     module_list_header_subjects: "Předměty",
+    module_list_header_authors_selected: "Vybráno {0}",
     module_list_header_topics_selected: "Vybráno {0}",
     module_list_header_subjects_selected: "Vybráno {0}",
     module_list_header_action: "Akce",
     module_list_empty: "Žádné moduly k přidání",
     module_list_search_empty: "Žádné moduly neodpovídají vašemu vyhledávání",
     module_list_topics_empty: "Žádná témata",
-    module_list_topics_subjects: "Žádné předměty",
+    module_list_subjects_empty: "Žádné předměty",
     module_list_clear_filters: "Vymazat filtry",
+    module_list_delete_module_title: "Odstranit modul",
+    module_list_delete_module_text_p1: "Opravdu chcete odstranit modul ",
+    module_list_delete_module_text_p2: "?",
+    module_list_cannot_delete: "Modul může být odstraněn pouze autorem",
+    module_list_cannot_add: "Tento modul již je součástí této lekce",
 
     // CourseUserList
     course_user_delete_dialog_title : "Odebrat uživatele",
     course_user_delete_dialog_text: "Opravdu chcete odebrat uživatele&nbsp;<strong>{0}</strong>&nbsp;z kurzu?",
     course_user_delete_success_title: "Odebrání úspěšné",
     course_user_delete_success_text: "Uživatel byl úspěšně odebrán z kurzu.",
-    course_user_delete_error_title: "Chyba při mazání",
-    course_user_delete_error_text: "Při odebírání uživatele z kurzu došlo k chybě: {0}",
+    course_user_delete_error_title: "Chyba při odstraňování",
+    course_user_delete_error_text: "Při odebírání uživatele z kurzu došlo k chybě: {0}.\nOdebírat uživatele z kurzu může pouze garant předmětu.",
 
     course_secret_change_title: "Změnit kód",
     course_secret_changed_title: "Kód změněn",
@@ -476,7 +516,7 @@ export const customCs = {
     course_user_table_name: "Jméno",
     course_user_table_username: "Username",
     course_user_table_role: "Role",
-    course_user_table_progress: "Pokrok",
+    course_user_table_progress: "Postup",
     course_user_table_action: "Akce",
     course_user_remove: "Odebrat z kurzu",
     course_user_detail_link: "Detail uživatele",
@@ -493,10 +533,10 @@ export const customCs = {
     lesson_user_list_header_user: "Uživatel",
     lesson_user_list_header_solution: "Řešení modulu",
     lesson_user_list_header_detail: "Detail",
-    lesson_user_list_filter_completed: "Ukázat pouze úspěšná řešení",
-    lesson_user_list_filter_requests: "Ukázat pouze žádosti",
+    lesson_user_list_filter_completed: "Ukázat úspěšná řešení",
+    lesson_user_list_filter_requests: "Ukázat žádosti",
     lesson_user_list_filter_allowed_show: "Ukázat pouze zveřejněná řešení",
-    lesson_user_list_row_detail: "Detail uživatele",
+    lesson_user_list_row_detail: "Řešení uživatele",
 
     // LessonUserListLeftDrawer
     lesson_user_list_left_drawer_users: "Přehled řešení",
@@ -506,10 +546,18 @@ export const customCs = {
     lesson_user_list_next: "Další",
     lesson_user_list_rule: "Bodovací pravidla",
 
-    // NotificationMenu
+    // LessonSolutions
+    lesson_solutions_users: "Studenti",
+    lesson_solutions_modules: "Moduly",
+    lesson_solutions_to_lesson: "Zpět do lekce",
+    lesson_solutions_course_users: "Uživatelé v kurzu",
+    lesson_solutions_note_visible_lesson: "Poznámka: Jsou vypsáni pouze studenti, kteří mohou danou lekci zobrazit.",
+    lesson_solutions_delete_dialog_start_answer: "Opravdu si přejete odstranit tuto odpověď?",
+    lesson_solutions_delete_dialog_start_comment: "Opravdu si přejete odstranit tento komentář?",
+
+    // NotificationMenu`
     notification_menu_title: "Notifikace",
-    notification_show_satisfied: "Ukázat i vyřešené",
-    notification_hide_satisfied: "Schovat vyřešené",
+    notification_show_satisfied: "Pouze vyřešené",
     notification_list_empty: "✨ Nemáte žádné nepřečtené notifikace",
     notification_list_all_empty: "✨ Nemáte žádné notifikace",
     notification_list_mark_satisfied: "Označit vše jako přečtené",
@@ -531,13 +579,19 @@ export const customCs = {
     nav_users: "Uživatelé",
     nav_import_users: "Import uživatelů",
     nav_create_lesson: "Nová lekce",
-    nav_lesson_user_list: "{0} (Uživatelé)",
+    nav_edit_lesson: "Úprava",
+    nav_lesson_solutions: "Řešení",
+    nav_lesson_user_list: "Uživatelé",
     nav_create_module: "Nový modul",
     nav_notification_list: "Všechny notifikace",
 
     // Separate pages
     presentation_page_title: "Prezentace",
     guide_page_title: "Příručka",
+    guide_teachers: "Návod pro učitele",
+    guide_students: "Návod pro studenty",
+    guide_guarantors: "Návod pro garanty",
+    guide_admins: "Návod pro správce",
 
     // LoginForm
     login: "Přihlásit se",
@@ -545,26 +599,33 @@ export const customCs = {
     presentation_link: "Prezentace",
 
     // Requests
-    pending_request_eval: "Čeká na ohodnocení učitelem",
-    pending_request_help: "Žádost o pomoc čeká na odpověď",
+    pending_request_eval: "Žádost o ohodnocení",
+    pending_request_help: "Žádost o pomoc",
     pending_request_eval_teacher: "Nezodpovězená žádost o ohodnocení: {0}",
     pending_request_help_teacher: "Nezodpovězená žádost o pomoc: {0}",
 
+    right_drawer_requests: "Žádosti",
+    right_drawer_compilation: "Kompilace a testy",
+
+    request_none: "Žádné žádosti.",
     request_eval_btn: "Odevzdat",
     request_eval_cancel_btn: "Zrušit odevzdání",
     request_help_btn: "Požádat o pomoc",
     request_help_cancel_btn: "Zrušit žádost",
     request_load_fail: "Chyba při načítání žádostí",
     request_load_text_fail: "Při načítání žádostí došlo k chybě: {0}",
+    request_no_text: "<bez textu>",
     request_teacher_eval_btn: "Ohodnotit",
     request_teacher_comment_btn: "Okomentovat",
     request_teacher_help_btn: "Odpovědět",
-    request_teacher_answer: "{0} odpověděl: {1}",
-    request_answer_delete_btn: "Smazat odpověď",
-    request_answer_deleted_title: "Odpověď smazána",
-    request_answer_deleted_title_fail: "Chyba při mazání odpovědi",
-    request_answer_deleted_text: "Odpověď byla úspěšně smazána.",
-    request_answer_deleted_text_fail: "Při pokusu o smazání odpovědi došlo k chybě: {0}",
+    request_teacher_answered: "{0} odpověděl",
+    request_teacher_commented: "{0} okomentoval",
+    request_answer_delete_btn: "Odstranit odpověď",
+    request_comment_delete_btn: "Odstranit komentář",
+    request_answer_deleted_title: "Odpověď odstraněna",
+    request_answer_deleted_title_fail: "Chyba při odstraňování odpovědi",
+    request_answer_deleted_text: "Odpověď byla úspěšně odstraněna.",
+    request_answer_deleted_text_fail: "Při pokusu o odstranění odpovědi došlo k chybě: {0}",
 
     edit_code_from_gitlab: "Importovat z Gitlabu",
     gitlab_import_list_header_name: "Jméno Projektu",
@@ -592,11 +653,11 @@ export const customCs = {
     //Logs
     log_button: "Logy",
     log_list: "Seznam logů",
-    log_delete: "Smazat logy",
-    log_delete_older_than: "Smazat logy starší než",
+    log_delete: "Odstranit logy",
+    log_delete_older_than: "Odstranit logy starší než",
     log_date_required: "Je potřeba zadat datum",
-    log_delete_title: "Smazaní logů",
-    log_delete_success_text: "Logy byly uspěšně smazany",
+    log_delete_title: "Odstranění logů",
+    log_delete_success_text: "Logy byly uspěšně odstraněny",
 
     request_help: {
         title: "Žádost odeslána",
@@ -648,7 +709,7 @@ export const customCs = {
 
         dialog_title: "Ohodnotit úlohu",
         textarea: "Hodnocení",
-        percent: "Hodnocení: {0} %",
+        percent: "Hodnocení:",
         action: "Ohodnotit",
         toggle: "Označit úlohu jako vyřešenou",
     },
@@ -691,7 +752,8 @@ export const customCs = {
         submitted_code: "Odevzdaný kód",
         reference_solution: "Referenční řešení",
         test_data: "Testovací data",
-        reset_progress: "Resetovat progress",
+        reset_progress: "Resetovat postup",
+        reset_progress_dialog_text: "Opravdu chcete resetovat svůj postup v tomto modulu?",
         test_name_tooltip: "Název testovací sady",
         tests_passed_total_tooltip: "Počet splněných testů v sadě",
         tests_show_outputs: "Zobrazit výstupy",
@@ -726,6 +788,8 @@ export const customCs = {
         error_program_timeout: "Studentský program překročil povolenou dobu běhu, {0}.",
 
         edit_tab_information: "Kódový modul",
+        edit_tab_information_tests_success_title: "Úspěch",
+        edit_tab_information_tests_success_body: "Testy úspěšně importovány",
         edit_tab_tests: "Testy",
         edit_tab_student: "Výchozí kód",
         edit_tab_envelope: "Obálka kódu",
@@ -771,15 +835,18 @@ export const customCs = {
 
         edit_test_name: "Název testu",
         edit_test_description: "Popis testu",
-        edit_test_parameter: "Parametr",
-        edit_test_time_limit: "Časový limit (prázdný = bez limitu)",
+        edit_test_parameter: "Parametr (kladné celé číslo)",
+        edit_test_parameter_tooltip: "Jeden test odpovídá jednomu spuštění testovacího kódu, s tímto číslem jako argumentem z příkazové řádky.",
+        edit_test_time_limit: "Časový limit v celých sekundách (prázdný = bez limitu)",
         edit_test_check_memory: "Kontrolovat práci s pamětí",
         edit_test_hidden: "Skrýt výsledky testu",
         edit_test_should_fail: "Program má selhat",
-        delete_test: "Smazat test",
+        delete_test: "Odstranit test",
+        delete_test_dialog_start: "Opravdu si přejete odstranit test ",
+        delete_test_dialog_middle: "?",
         create_test: "Přidat test",
-        delete_test_title: "Test smazán",
-        delete_test_text: "Test byl úspěšně smazán.",
+        delete_test_title: "Test odstraněn",
+        delete_test_text: "Test byl úspěšně odstraněn.",
         new_test: "Nový test",
         create_test_requirements: "Pro vytvoření testu musíš zadat jeho jméno, popis a parametr",
 
@@ -788,12 +855,32 @@ export const customCs = {
         edit_file_content: "Výchozí obsah souboru",
         edit_file_header_file: "Hlavičkový soubor (nekompilovat)",
         edit_file_reference: "Referenční řešení",
-        delete_file: "Smazat soubor",
+        delete_file: "Odstranit soubor",
+        delete_file_dialog_start: "Opravdu si přejete odstranit soubor ",
+        delete_file_dialog_middle: "?",
         create_file: "Přidat soubor",
-        delete_file_title: "Soubor smazán",
-        delete_file_text: "Soubor byl úspěšně smazán.",
+        delete_file_title: "Soubor odstraněn",
+        delete_file_text: "Soubor byl úspěšně odstraněn.",
         new_file: "Nový soubor",
         create_file_requirements: "Pro vytvoření souboru musíš zadat jeho jméno a obsah",
+
+        // Automatic generation
+        generate_dialog_title: "Vygenerovat nastavení",
+        generate_dialog_text_p1: "Chcete využít výchozí nastavení (testy, soubory, obálku a testovací kód) pro tento typ kódového modulu?",
+        generate_dialog_text_p2: "Pozor: Nevratně vymaže všechna dosavadní nastavení.",
+        generate_dialog_no: "Ne",
+        generate_dialog_yes: "Ano",
+
+        basic_test_name: "Základní test",
+        basic_test_description: "Test základní funkcionality",
+        random_test_name: "Náhodný test",
+        random_test_description: "Test náhodnými hodnotami",
+        efficiency_test_name: "Test efektivity",
+        efficiency_test_description: "Testuje efektivitu programu",
+        correct_implementation_test_name: "Správná implementace",
+        correct_implementation_test_description: "Všechny asserty projdou při správné implementaci testované funkce",
+        wrong_implementation_test_name: "Nesprávná implementace",
+        wrong_implementation_test_description: "Asserty zachytí nesprávnou implementaci",
     },
 
     //QuizModule
@@ -828,8 +915,18 @@ export const customCs = {
         question_list_empty: "Žádné otazky k přidání",
         question_list_search_empty: "Žádné otazky neodpovídají vašemu vyhledávání",
         question_list_topics_empty: "Žádná témata",
-        question_list_topics_subjects: "Žádné předměty",
+        question_list_subjects_empty: "Žádné předměty",
         question_list_clear_filters: "Vymazat filtry",
+
+        question_list_delete_question_title: "Odstranit otázku",
+        question_list_delete_question_text_p1: "Opravdu chcete odstranit otázku ",
+        question_list_delete_question_text_p2: "?",
+        question_list_cannot_delete: "Otázka může být odstraněna pouze autorem",
+        question_list_cannot_add: "Tato otázka již je součástí tohoto kvízu",
+
+        remove_question: "Odebrat otázku",
+        remove_question_dialog_start: "Opravdu chcete odebrat tuto otázku z kvízu?",
+        remove_question_dialog_end: `Budete moci ji kdykoliv vrátit v menu "Přidat existující otázku".`,
 
         create_question: "Vytvořit otázku",
         edit_question: "Upravit otázku",
@@ -903,14 +1000,16 @@ export const customCs = {
 
     // Template
     template_title: "Šablona",
-    template_module_test_title: "Použít testy z modulu",
+    template_module_test_title: "Použít šablonu",
     template_module_test_button: "Zkopírovat testy z jiného modulu",
     template_create_button: "Vytvořit šablonu",
     template_use_button: "Použít šablonu",
-    template_create_notification_title: "Template Created",
-    template_create_notification_text: "Your template has been successfully created.",
-    template_update_notification_title: "Template Updated",
-    template_update_notification_text: "Your template has been successfully updated.",
+    template_create_notification_title: "Šablona vytvořena",
+    template_create_notification_text: "Šablona byla úspěšně vytvořena.",
+    template_update_notification_title: "Šablona upravena",
+    template_update_notification_text: "Šablona byla úspěšně upravena",
+    template_list_delete_template_title: "Odstranit šablonu",
+    template_list_delete_template_text_p1: "Opravdu chcete odstranit šablonu ",
 
     //Dev version notofication
     dev_version_notofication: "Pozor! Toto je DEV verze aplikaci."
@@ -921,8 +1020,7 @@ export const customEn = {
     information: ' ',
 
     // General
-    dialog_close: "Close",
-    dialog_delete: "Delete",
+    dialog_close: "Cancel",
     dialog_trash: "Trash",
     dialog_save: "Save",
     dialog_try_again: "Try again",
@@ -938,6 +1036,9 @@ export const customEn = {
     action_choose: "Choose",
     action_change: "Change",
     action_search: "Search",
+    action_generate: "Generate",
+    action_reset: "Reset",
+    irreversible_action: "This action is irreversible.",
     role_teacher: "Teacher",
     role_student: "Student",
 
@@ -985,7 +1086,7 @@ export const customEn = {
     semester_end: "End of the semester",
     semester_edit: "Edit semester",
     semester_delete: "Delete semester",
-    semester_delete_question: "Do you really wish to delete semester",
+    semester_delete_question: "Are you sure you want to delete semester",
     semester_date_required: "Date is required",
     semester_cant_delete_courses_present: "Semester has at least one course so it can't be deleted",
     semester_creation_title: "Semester creation",
@@ -1024,7 +1125,7 @@ export const customEn = {
 
     //TopicListDeleteDialog
     topic_list_delete_title: "Delete topic",
-    topic_list_delete_confirm: "Do you really want to delete the topic",
+    topic_list_delete_confirm: "Are you sure you want to delete the topic",
     topic_list_delete_success_title: "Topic deleted",
     topic_list_delete_success_text: "The topic has been successfully deleted.",
 
@@ -1049,10 +1150,13 @@ export const customEn = {
     course_join: "Join a course",
     course_join_short: "Join",
     course_join_code: "Code",
-    course_join_invalid_code: "Invalid code",
+    course_new_join_code: "New code",
+    course_save_join_code: "SAVE",
+    course_join_invalid_code: "Invalid code (code must be unique for every course)",
     course_list_role_teacher: " (Teacher)",
     course_list_role_student: " ",
     course_list_lesson_completed: "{0} / {1} lessons",
+    course_list_lesson_completed_tooltip: "{0} lessons completed out of {1} completable",
     course_list_semesters: "Courses ({0})",
     course_list_all_semesters: "All",
 
@@ -1065,9 +1169,8 @@ export const customEn = {
     active_quiz: "Active quiz",
 
     // CourseDetail
-    course_detail_title: "Lessons",
     course_detail_left_drawer_course_list: "Course list",
-    course_detail_header_course_secret: "Show code",
+    course_detail_header_course_secret: "Join code",
     course_detail_header_users: "Users",
     course_detail_header_new_lesson: "New lesson",
     course_detail_no_weeks: "This course has no weeks.",
@@ -1081,37 +1184,49 @@ export const customEn = {
 
     // CourseDetailDeleteDialog
     course_detail_lesson_delete_title: "Delete lesson",
-    course_detail_lesson_delete_confirm: "Do you really want to delete the lesson",
+    course_detail_lesson_delete_confirm_p1: "Are you sure you want to delete lesson ",
+    course_detail_lesson_delete_confirm_p2: "?\nIts modules will not be deleted.",
     course_detail_lesson_delete_success_title: "Lesson deleted",
     course_detail_lesson_delete_success_text: "The lesson has been successfully deleted.",
     course_detail_week_delete_title: "Delete week",
-    course_detail_week_delete_confirm: "Do you really want to delete the week",
+    course_detail_week_delete_confirm_p1: "Are you sure you want to delete week ",
+    course_detail_week_delete_confirm_p2: " and all of its lessons?",
     course_detail_week_delete_success_title: "Week deleted",
     course_detail_week_delete_success_text: "The week has been successfully deleted.",
 
     // CourseDetailCopyDialog
+    course_detail_copy_search_courses: "Courses",
+    course_detail_copy_search_name: "Name",
+    course_detail_copy_search_lesson_types: "Lesson types",
+    course_detail_copy_no_courses: "You are not a teacher in any courses other than this one.",
     course_detail_lesson_copy_title: "Copy lesson",
     course_detail_lesson_copy_tooltip: "Copy to course",
     course_detail_lesson_copy_success_title: "Lesson copied",
     course_detail_lesson_copy_success_text: "The lesson has been successfully copied.",
+    course_detail_lesson_copy_no_matches: "No lessons correspond to the filter.",
     course_detail_week_copy_title: "Copy week",
     course_detail_week_copy_tooltip: "Copy to course",
     course_detail_week_copy_success_title: "Week copied",
     course_detail_week_copy_success_text: "The week has been successfully copied.",
+    course_detail_week_copy_no_matches: "No weeks correspond to the filter.",
 
     // CourseDetailLessonRow
     course_detail_lesson_row_student_list: "Overview of students and modules",
 
     // CourseDeleteDialog
     course_delete: "Delete course",
-    course_delete_question: "Do you really wish to delete course",
+    course_delete_question: "Are you sure you want to delete course",
     course_deletion_title: "Course deletion",
     course_deletion_success_text: "Course deleted successfully",
     course_cant_delete_weeks_present: "Course has at least one week so it can't be deleted",
     course_cant_delete_users_present: "Course has at least one users so it can't be deleted",
 
+    // CourseJoinCodeDialog
+    course_current_code: "Current code",
+    course_no_code_set: "This course has no join code set.",
+
     // LessonDetailLeftDrawer
-    lesson_detail_intro_text: "Introduction text",
+    lesson_detail_intro_text: "Introduction",
     module_title_locked: "Locked module",
 
     // ModuleUnlockCard
@@ -1123,9 +1238,28 @@ export const customEn = {
     module_locked_depends: "This module will unlock upon completion of module \"{0}\"",
 
     // LessonModuleDetail
+    lesson_edit_modules_remove: "Remove module",
+    lesson_edit_modules_empty: "No modules",
+    lesson_edit_modules_add: "Add existing module",
+    lesson_edit_modules_create: "Create new module",
+    lesson_edit_modules_read: "View module settings",
+
+    solutions: "Solutions",
+    solutions_for_module: "Solutions for module",
+    solutions_by_user: "Solutions by",
+    progress_overview: "Progress overview",
+    module_view: "View",
+    module_edit: "Edit",
+    module_remove_dialog_text_p1: "Are you sure you want to remove module ",
+    module_remove_dialog_text_p2: " from this lesson?",
+    module_remove_dialog_text_p3: 'You may add it back at any time in the "Add existing module" menu.',
+    module_remove_success_title: "Module removed",
+    module_remove_success_text: "The module has successfully been removed from this lesson",
+    module_remove_failure_title: "Removal failed",
+    module_remove_failure_text: "An error occured while trying to remove the module: {0}",
     tab_assignment: "ASSIGNMENT",
     tab_showcase: "SHOWCASE",
-    tab_rating: "Student Rating",
+    tab_rating: "Student Ratings",
     tab_rating_empty: "No ratings yet",
     rating_btn: "YOUR RATING",
     tab_preview: "PREVIEW",
@@ -1143,7 +1277,7 @@ export const customEn = {
 
 
     // Subjects
-    subject_list: "Subjects",
+    subject_list: "Subjects and courses",
     subject_list_drawer: "Semesters",
     subject_detail_list: "Subjects",
     subject_course_num: "course(s)",
@@ -1175,7 +1309,7 @@ export const customEn = {
 
     subject_delete: "Delete subject",
     subject_delete_courses_present: "Subject has at least one course so it can't be deleted",
-    subject_delete_question: "Do you really wish to delete subject",
+    subject_delete_question: "Are you sure you want to delete subject",
 
     // LessonCreateEdit
     unsaved_changes_dialog_title: "Unsaved changes",
@@ -1189,7 +1323,10 @@ export const customEn = {
     lesson_edit_type: "Type",
     lesson_edit_time_start: "Start time",
     lesson_edit_time_end: "End time",
+    lesson_edit_reset_time: "Use default",
+    lesson_edit_reset_time_tooltip: "Use start and end time of week",
     lesson_edit_hidden: "Hide from students",
+    lesson_edit_reference_access: "Reference solutions accessible from",
 
     lesson_edit_tab_information: "Information",
     lesson_edit_tab_text: "Introduction text",
@@ -1209,17 +1346,12 @@ export const customEn = {
     lesson_edit_modules_sandbox_success: "Module added to sandbox",
     lesson_edit_modules_sandbox_title: "Module testing",
 
-    lesson_edit_modules_remove: "Remove from lesson",
-    lesson_edit_modules_empty: "No modules",
-    lesson_edit_modules_add: "Add existing module",
-    lesson_edit_modules_create: "Create new module",
-    lesson_edit_modules_read: "Read module",
-
     lesson_edit_rules_create: "Create new rule",
     lesson_edit_rules_edit: "Edit",
     lesson_edit_rules_edit_description: "Edit description",
     lesson_edit_rules_delete: "Delete scoring rule",
-    lesson_edit_rule_delete_question: "Do you really wish to delete scoring rule",
+    lesson_edit_rule_delete_text_p1: "Are you sure you want to delete scoring rule ",
+    lesson_edit_rule_delete_text_p2: "?",
     lesson_edit_rule_until: "until:",
     lesson_edit_rule_to_complete: "to complete:",
     lesson_edit_rule_points: "p.",
@@ -1278,6 +1410,7 @@ export const customEn = {
     week_edit_from: "Start",
     week_edit_until: "End",
     week_new: "New week",
+    week_copy: "Copy week",
 
     // ModuleCreateEdit
     module_menu_title_create: "Create module",
@@ -1290,8 +1423,8 @@ export const customEn = {
     module_comment_name: "Comment",
     module_delete_comment_success: "Your comment was successfully deleted!",
     module_create_comment_too_long: "Your comment is too long or too short",
-    module_delete_title: "Delete comment",
-    module_delete_question: "Do you really want to delete your comment",
+    module_delete_comment_title: "Delete comment",
+    module_delete_comment_text: "Are you sure you want to delete your comment?",
     module_show_more: "SHOW MORE COMMENTS",
     module_show_less: "SHOW LESS COMMENTS",
     module_update_title: "Updating comment",
@@ -1304,12 +1437,14 @@ export const customEn = {
     module_type_quiz: "Quiz module",
     module_type_assignment: "Assignment module",
     module_type_selftest: "Selftest module",
+    module_edit_guide_link: "View guide",
     module_edit_depend: "Dependency",
     module_edit_no_depend: "(No dependency)",
     module_edit_author: "Author",
     module_edit_editors: "Editors",
     module_edit_editors_all: "All teachers",
     module_edit_difficulty: "Difficulty",
+    module_edit_not_allowed: "The module must have a name, a type, and a subject",
     module_difficulty_none: "No difficulty rating",
     module_difficulty_beginner: "Beginner",
     module_difficulty_easy: "Easy",
@@ -1341,6 +1476,7 @@ export const customEn = {
     module_list_header_type: "Type",
     module_list_header_topics: "Topics",
     module_list_header_subjects: "Subjects",
+    module_list_header_authors_selected: "{0} selected",
     module_list_header_topics_selected: "{0} selected",
     module_list_header_subjects_selected: "{0} selected",
     module_list_header_action: "Action",
@@ -1349,14 +1485,19 @@ export const customEn = {
     module_list_topics_empty: "No topics",
     module_list_subjects_empty: "No subjects",
     module_list_clear_filters: "Clear filters",
+    module_list_delete_module_title: "Delete module",
+    module_list_delete_module_text_p1: "Are you sure you want to delete module ",
+    module_list_delete_module_text_p2: "?",
+    module_list_cannot_delete: "Only the author of a module may delete it",
+    module_list_cannot_add: "This module is already a part of this lesson",
 
-    // CourseUserList
+        // CourseUserList
     course_user_delete_dialog_title : "Remove user",
-    course_user_delete_dialog_text: "Do you really wish to remove user&nbsp;<strong>{0}</strong>&nbsp;from course?",
+    course_user_delete_dialog_text: "Are you sure you want to remove user&nbsp;<strong>{0}</strong>&nbsp;from course?",
     course_user_delete_success_title: "Removal successful",
     course_user_delete_success_text: "User has been removed from course successfully.",
     course_user_delete_error_title: "Error whilst removing",
-    course_user_delete_error_text: "An error occured whilst trying to remove user from course: {0}",
+    course_user_delete_error_text: "An error occured whilst trying to remove user from course: {0}.\nOnly a guarantor of the subject may remove users from a course.",
 
     course_secret_change_title: "Change code",
     course_secret_changed_title: "Code changed",
@@ -1380,8 +1521,8 @@ export const customEn = {
     course_user_imported_title: "Import successful",
     course_user_imported_text: "Users have been imported to the course.",
 
-    course_delete_title: "Remove course",
-    course_delete_confirm: "Do you really want to delete the course",
+    course_delete_title: "Delete course",
+    course_delete_confirm: "Are you sure you want to delete the course",
     course_delete_success_title: "Course deleted",
     course_delete_success_text: "Course was successfully deleted",
     error_deleting_course: "Error deleting course",
@@ -1406,12 +1547,12 @@ export const customEn = {
     // LessonUserList
     lesson_user_list_title: "Student list",
     lesson_user_list_header_user: "User",
-    lesson_user_list_header_solution: "Module solution",
+    lesson_user_list_header_solution: "Module solutions",
     lesson_user_list_header_detail: "Detail",
-    lesson_user_list_filter_completed: "Show only successful solutions",
-    lesson_user_list_filter_requests: "Show only requests",
+    lesson_user_list_filter_completed: "Show successful solutions",
+    lesson_user_list_filter_requests: "Show requests",
     lesson_user_list_filter_allowed_show: "Show only published solutions",
-    lesson_user_list_row_detail: "User detail",
+    lesson_user_list_row_detail: "User solutions",
 
     // LessonUserListLeftDrawer
     lesson_user_list_left_drawer_users: "Solution list",
@@ -1421,10 +1562,18 @@ export const customEn = {
     lesson_user_list_next: "Next",
     lesson_user_list_rule: "Scoring Rules",
 
+    // LessonSolutions
+    lesson_solutions_users: "Students",
+    lesson_solutions_modules: "Modules",
+    lesson_solutions_to_lesson: "Back to lesson",
+    lesson_solutions_course_users: "Course users",
+    lesson_solutions_note_visible_lesson: "Note: Only students who can view this lesson are listed.",
+    lesson_solutions_delete_dialog_start_answer: "Are you sure you want to delete this answer?",
+    lesson_solutions_delete_dialog_start_comment: "Are you sure you want to delete this comment?",
+
     // NotificationMenu
     notification_menu_title: "Notifications",
-    notification_show_satisfied: "Show satisfied",
-    notification_hide_satisfied: "Hide satisfied",
+    notification_show_satisfied: "Satisfied only",
     notification_list_empty: "✨ You have no unread notifications",
     notification_list_all_empty: "✨ You have no notifications",
     notification_list_mark_satisfied: "Mark all as satisfied",
@@ -1446,13 +1595,19 @@ export const customEn = {
     nav_users: "Users",
     nav_import_users: "Import users",
     nav_create_lesson: "New lesson",
-    nav_lesson_user_list: "{0} (Users)",
+    nav_edit_lesson: "Edit lesson",
+    nav_lesson_solutions: "Solutions",
+    nav_lesson_user_list: "Users",
     nav_create_module: "New module",
     nav_notification_list: "All notifications",
 
     // Separate pages
     presentation_page_title: "Presentation",
     guide_page_title: "Guide",
+    guide_teachers: "Guide for teachers",
+    guide_students: "Guide for students",
+    guide_guarantors: "Guíde for guarantors",
+    guide_admins: "Guide for administrators",
 
     // LoginForm
     login: "Log in",
@@ -1460,22 +1615,29 @@ export const customEn = {
     presentation_link: "Presentation",
 
     // Requests
-    pending_request_eval: "Pending evaluation by teacher",
-    pending_request_help: "Help request awaiting response",
+    pending_request_eval: "Evaluation request",
+    pending_request_help: "Help request",
     pending_request_eval_teacher: "Unanswered evaluation request: {0}",
     pending_request_help_teacher: "Unanswered help request: {0}",
 
+    right_drawer_requests: "Requests",
+    right_drawer_compilation: "Compilation and tests",
+
+    request_none: "No requests.",
     request_eval_btn: "Submit",
     request_eval_cancel_btn: "Cancel submission",
     request_help_btn: "Request help",
     request_help_cancel_btn: "Cancel request",
     request_load_fail: "Error loading student request",
     request_load_text_fail: "An error occurred while loading the last student request: {0}",
+    request_no_text: "<no text>",
     request_teacher_eval_btn: "Evaluate",
     request_teacher_comment_btn: "Comment",
     request_teacher_help_btn: "Answer",
-    request_teacher_answer: "{0} answered: {1}",
+    request_teacher_answered: "{0} answered",
+    request_teacher_commented: "{0} commented",
     request_answer_delete_btn: "Delete answer",
+    request_comment_delete_btn: "Delete comment",
     request_answer_deleted_title: "Answer deleted",
     request_answer_deleted_title_fail: "Error deleting answer",
     request_answer_deleted_text: "The answer has been deleted.",
@@ -1563,7 +1725,7 @@ export const customEn = {
 
         dialog_title: "Evaluate Assignment",
         textarea: "Evaluation",
-        percent: "Evaluate: {0} %",
+        percent: "Evaluate:",
         action: "Evaluate",
         toggle: "Mark assignment as completed",
     },
@@ -1607,6 +1769,7 @@ export const customEn = {
         reference_solution: "Reference solution",
         test_data: "Test data",
         reset_progress: "Reset progress",
+        reset_progress_dialog_text: "Are you sure you want to reset your progress for this module?",
         test_name_tooltip: "Test set name",
         tests_passed_total_tooltip: "Number of tests passed in the set",
         tests_show_outputs: "Show outputs",
@@ -1641,6 +1804,8 @@ export const customEn = {
         error_program_timeout: "The program exceeded the time limit, {0}.",
 
         edit_tab_information: "Code module",
+        edit_tab_information_tests_success_title: "Success",
+        edit_tab_information_tests_success_body: "Tests imported successfully",
         edit_tab_tests: "Tests",
         edit_tab_student: "Default code",
         edit_tab_envelope: "Code envelope",
@@ -1686,12 +1851,15 @@ export const customEn = {
 
         edit_test_name: "Test name",
         edit_test_description: "Test description",
-        edit_test_parameter: "Parameter",
-        edit_test_time_limit: "Time limit (empty = no limit)",
+        edit_test_parameter: "Parameter (positive whole number)",
+        edit_test_parameter_tooltip: "One test corresponds to one execution of the test code, with this number as a command line argument.",
+        edit_test_time_limit: "Time limit in whole seconds (empty = no limit)",
         edit_test_check_memory: "Check memory access",
         edit_test_hidden: "Hide test outputs",
         edit_test_should_fail: "Test should fail",
         delete_test: "Delete test",
+        delete_test_dialog_start: "Are you sure you want to delete test ",
+        delete_test_dialog_middle: "?",
         create_test: "Add test",
         delete_test_title: "Test deleted",
         delete_test_text: "Test has been deleted successfully.",
@@ -1704,11 +1872,31 @@ export const customEn = {
         edit_file_header_file: "Header file (do not compile)",
         edit_file_reference: "Reference solution",
         delete_file: "Delete file",
+        delete_file_dialog_start: "Are you sure you want to delete file ",
+        delete_file_dialog_middle: "?",
         create_file: "Create file",
         delete_file_title: "File deleted",
         delete_file_text: "File has been successfully deleted.",
         new_file: "New file",
         create_file_requirements: "The new file must contain non-empty name and content",
+
+        // Automatic generation
+        generate_dialog_title: "Generate settings",
+        generate_dialog_text_p1: "Would you like to use the default settings (tests, files, envelope and tester code) for this type of code module?",
+        generate_dialog_text_p2: "Warning: Irreversibly clears all current settings.",
+        generate_dialog_no: "No",
+        generate_dialog_yes: "Yes",
+
+        basic_test_name: "Basic test",
+        basic_test_description: "Tests basic functionality",
+        random_test_name: "Random test",
+        random_test_description: "Tests the program with random values",
+        efficiency_test_name: "Efficiency test",
+        efficiency_test_description: "Tests the program's efficiency",
+        correct_implementation_test_name: "Correct implementation",
+        correct_implementation_test_description: "All asserts pass for a correct implementation",
+        wrong_implementation_test_name: "Incorrect implementation",
+        wrong_implementation_test_description: "The asserts catch an incorrect implementation",
     },
 
     // AssignmentModule
@@ -1751,6 +1939,16 @@ export const customEn = {
         question_list_topics_empty: "No topics",
         question_list_subjects_empty: "No subjects",
         question_list_clear_filters: "Clear filters",
+
+        question_list_delete_question_title: "Delete question",
+        question_list_delete_question_text_p1: "Are you sure you want to delete question ",
+        question_list_delete_question_text_p2: "?",
+        question_list_cannot_delete: "Only the author of a question may delete it",
+        question_list_cannot_add: "This question is already a part of this quiz",
+
+        remove_question: "Remove question",
+        remove_question_dialog_start: "Are you sure you want to remove this question from the quiz?",
+        remove_question_dialog_end: `You may add it back at any time in the "Add existing question" menu.`,
 
         create_question: "create question",
         edit_question: "edit question",
@@ -1818,7 +2016,7 @@ export const customEn = {
 
     //Template
     template_title: "Templates",
-    template_module_test_title: "Use tests from module",
+    template_module_test_title: "Use template",
     template_module_test_button: "Copy tests from another module",
     template_create_button: "Create template",
     template_use_button: "Use template",
@@ -1826,6 +2024,8 @@ export const customEn = {
     template_create_notification_text: "Your template has been successfully created.",
     template_update_notification_title: "Template Updated",
     template_update_notification_text: "Your template has been successfully updated.",
+    template_list_delete_template_title: "Delete template",
+    template_list_delete_template_text_p1: "Are you sure you want to delete template ",
 
     //Dev version notofication
     dev_version_notofication: "Warning! This is DEV version of application."

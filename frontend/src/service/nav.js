@@ -1,3 +1,5 @@
+import {courseShortName} from "@/plugins/constants";
+
 export class NavigationElement {
     name
     path
@@ -44,14 +46,9 @@ export class CourseCreate extends NavigationElement {
 
 export class CourseDetail extends NavigationElement {
     constructor(course) {
-        if (course.subject === null && course.semester === null)
-            super(`Sandbox`, 'course-detail', {
-                course: course.id
-            })
-        else
-            super(` ${course.subject?.code} (${course.semester?.code})`, 'course-detail', {
-                course: course.id
-            })
+        super(courseShortName(course), 'course-detail', {
+            course: course.id
+        })
     }
 }
 
@@ -66,15 +63,6 @@ export class CourseUserList extends NavigationElement {
 export class TopicList extends NavigationElement {
     constructor() {
         super('Topics', 'topic-list')
-    }
-}
-
-export class CourseUserDetail extends NavigationElement {
-    constructor(course, user) {
-        super(user.username, 'course-user', {
-            course: course.id,
-            user: user.id
-        }, user.username)
     }
 }
 
@@ -97,16 +85,17 @@ export class LessonCreate extends NavigationElement {
 
 export class LessonEdit extends NavigationElement {
     constructor(lesson) {
-        super(lesson.name, 'lesson-edit', {
+        super('$vuetify.nav_edit_lesson', 'lesson-edit', {
             lesson: lesson.id
         })
     }
 }
 
 export class LessonDetail extends NavigationElement {
-    constructor(lesson) {
-        super(lesson.name, 'lesson-detail', {
-            lesson: lesson.id
+    constructor(lesson, week) {
+        const name = (week ? `${week.name} ` : "") + (lesson ? `(${lesson.name})` : "")
+        super(name, 'lesson-detail', {
+            lesson: lesson ? lesson.id : week.lessons[0]
         })
     }
 }
@@ -130,17 +119,17 @@ export class ScoringRuleDetail extends NavigationElement {
 }
 
 
-export class LessonUserList extends NavigationElement {
+export class LessonProgressOverview extends NavigationElement {
     constructor(lesson, t) {
-        super(t('$vuetify.nav_lesson_user_list', lesson.name), 'lesson-user-list', {
+        super(t('$vuetify.nav_lesson_user_list'), 'lesson-user-list', {
             lesson: lesson.id
         })
     }
 }
 
-export class LessonModuleUser extends NavigationElement {
+export class LessonSolutionsModule extends NavigationElement {
     constructor(lesson, module,/* scoringRule,*/ user) {
-        super(module.name, 'lesson-module-user', {
+        super('$vuetify.nav_lesson_solutions', 'lesson-solutions-module', {
             lesson: lesson.id,
             module: module.id,
            // scoringRule: scoringRule.id,
@@ -149,20 +138,20 @@ export class LessonModuleUser extends NavigationElement {
     }
 }
 
-export class LessonUserDetail extends NavigationElement {
-    constructor(lesson, user, showLesson) {
-        super(showLesson ? lesson.name : user.name, 'lesson-user', {
+export class LessonSolutionsUser extends NavigationElement {
+    constructor(lesson, user, module) {
+        super('$vuetify.nav_lesson_solutions', 'lesson-solutions-user', {
             lesson: lesson.id,
-            user: user.id
+            user: user.id,
+            module: module.id
         })
     }
 }
 
-export class ModuleUserDetail extends NavigationElement {
-    constructor(lesson, module, user) {
-        super(module.name, 'module-user-detail', {
+export class LessonUserDetail extends NavigationElement {
+    constructor(lesson, user) {
+        super('$vuetify.nav_lesson_solutions', 'lesson-user', {
             lesson: lesson.id,
-            module: module.id ?? -1,
             user: user.id
         })
     }
@@ -170,7 +159,7 @@ export class ModuleUserDetail extends NavigationElement {
 
 export class ScoringRuleUserDetail extends NavigationElement {
     constructor(lesson, scoringRule, user) {
-        super('scoring_rule_user_detail', 'scoring_rule_user_detail', {
+        super(scoringRule.shortName, 'lesson-solutions-scoring-rule', {
             lesson: lesson?.id,
             scoringRule: scoringRule?.id ?? -1,
             user: user?.id
@@ -199,7 +188,6 @@ export class ScoringRuleDetailUserList extends NavigationElement {
 
 export class ScoringRuleUserList extends NavigationElement {
     constructor(lesson, t) {
-        console.log("lesson constructor - ", lesson)
         super(t('$vuetify.nav_rule_user_list'), 'rule_user_list', {
             lesson: lesson
         })
@@ -208,22 +196,17 @@ export class ScoringRuleUserList extends NavigationElement {
 
 
 export class ModuleCreate extends NavigationElement {
-    constructor() {
-        super('$vuetify.nav_create_module', 'module-create')
-    }
-}
-
-export class ModuleEdit extends NavigationElement {
-    constructor(module) {
-        super(module.name, 'module-edit', {
-            module: module.id
+    constructor(lesson) {
+        super('$vuetify.nav_create_module', 'module-create', {
+            lesson: lesson.id
         })
     }
 }
 
-export class ModuleRead extends NavigationElement {
-    constructor(module) {
-        super(module.name, 'module-read', {
+export class LessonModuleEdit extends NavigationElement {
+    constructor(lesson, module) {
+        super(module.name, 'module-edit', {
+            lesson: lesson.id,
             module: module.id
         })
     }
@@ -292,17 +275,17 @@ export class Presentation extends NavigationElement{
 
 export class GuideDetail extends NavigationElement {
     constructor(guide) {
-        super(`${guide.id}`, 'guide-detail', {
+        super(guide.name, 'guide-detail', {
             guide: guide.id
         })
     }
 }
 
 export class GuideMarkdown extends NavigationElement {
-    constructor(guideId, markdownId) {
-        super(`${guideId}`, 'guide-markdown', {
+    constructor(guideId, markdown) {
+        super(markdown.name, 'guide-markdown', {
             guide: guideId,
-            markdown: markdownId
+            markdown: markdown.id
         })
     }
 }

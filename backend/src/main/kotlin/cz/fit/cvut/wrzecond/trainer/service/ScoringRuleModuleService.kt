@@ -19,7 +19,8 @@ class ScoringRuleModuleService(
     private val studentModuleRepository: StudentModuleRepository,
     private val moduleRepository: ModuleRepository,
     private val lessonRepository: LessonRepository,
-    private val logRepository: LogRepository
+    private val logRepository: LogRepository,
+    private val logService: LogService
 
 ) : IServiceBase<ScoringRuleModule>(repository, userRepository) {
 
@@ -56,7 +57,7 @@ class ScoringRuleModuleService(
                 }
             }
         }*/
-        logRepository.saveAndFlush(createLogEntry(userDto, savedNewMsr, "create"))
+        logService.log(userDto, savedNewMsr, "create")
         converter.toReadDTO(savedNewMsr)
 
     }
@@ -83,7 +84,7 @@ class ScoringRuleModuleService(
                     )
                     scoringRuleRepository.save(updatedSr)
                 }
-        logRepository.saveAndFlush(createLogEntry(userDto, srm, "delete"))
+        logService.log(userDto, srm, "delete")
     }
 
     private fun <X> checkAccess(lessonId: Int, moduleId: Int, userDto: UserAuthenticateDto?,

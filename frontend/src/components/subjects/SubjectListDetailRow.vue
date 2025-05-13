@@ -59,16 +59,16 @@ onMounted(async () => {
       <div class="d-flex justify-space-between align-center" style="gap: 0">
         <span class="ps-2">{{ subject.code }} </span>
         <span class="flex-grow-1 text-center">{{ coursesSubject.length }} {{ t('$vuetify.subject_course_num') }}</span>
-        <TooltipIconButton v-if="userStore.isAdmin" icon="mdi-pencil" color="black" :to="new Nav.SubjectEdit(subject).routerPath()"
+        <TooltipIconButton v-if="userStore.isAdmin" icon="mdi-pencil" :to="new Nav.SubjectEdit(subject).routerPath()"
                            @click="(e) => e.stopPropagation()" />
-        <v-btn color="black" variant="text" :to="new Nav.CourseCreate(props.semester, props.subject.id).routerPath()"
+        <v-btn variant="text" :to="new Nav.CourseCreate(props.semester, props.subject.id).routerPath()"
                icon @click="(e) => e.stopPropagation()">
           <v-icon icon="mdi-plus" />
           <v-tooltip activator="parent" location="top">
             {{ t('$vuetify.subject_new_course_button') }}
           </v-tooltip>
         </v-btn>
-        <TooltipIconButton v-if="userStore.isAdmin" icon="mdi-delete" color="black"
+        <TooltipIconButton v-if="userStore.isAdmin" icon="mdi-delete"
                            @click="(e) => {e.stopPropagation(); displayDeleteDialog=true}" />
         <v-btn variant="text" :icon="userStore.hiddenSubjects[subject.id] ? 'mdi-chevron-down' : 'mdi-chevron-up'" />
       </div>

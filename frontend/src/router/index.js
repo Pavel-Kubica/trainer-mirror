@@ -27,12 +27,6 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/courses/:course/users/:user',
-    name: 'course-user',
-    component: () => import('../views/CourseDetailView.vue'),
-    meta: { requiresAuth: true },
-  },
-  {
     path: '/courses/:course',
     name: 'course-detail',
     component: () => import('../views/CourseDetailView.vue'),
@@ -77,7 +71,7 @@ const routes = [
   {
     path: '/lessons/:lesson/users',
     name: 'lesson-user-list',
-    component: () => import('../views/LessonUserListView.vue'),
+    component: () => import('../views/LessonProgressOverviewView.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -106,26 +100,26 @@ const routes = [
   },
   {
     path: '/lessons/:lesson/modules/:module/users/:user',
-    name: 'lesson-module-user',
-    component: () => import('../views/LessonUserListDetailView.vue'),
+    name: 'lesson-solutions-module',
+    component: () => import('../views/LessonSolutionsView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/lessons/:lesson/users/:user/modules/:module',
-    name: 'module-user-detail',
-    component: () => import('../views/LessonModuleDetailView.vue'),
+    name: 'lesson-solutions-user',
+    component: () => import('../views/LessonSolutionsView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/lessons/:lesson/users/:user/scoringRules/:scoringRule',
-    name: 'scoring_rule_user_detail',
-    component: () => import('../views/LessonModuleDetailView.vue'),
+    name: 'lesson-solutions-scoring-rule',
+    component: () => import('../views/LessonSolutionsView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/lessons/:lesson/users/:user',
     name: 'lesson-user',
-    component: () => import('../views/LessonModuleDetailView.vue'),
+    component: () => import('../views/LessonSolutionsView.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -143,12 +137,6 @@ const routes = [
   {
     path: '/lessons/:lesson/modules/new',
     name: 'module-create',
-    component: () => import('../views/ModuleCreateEditView.vue'),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/lessons/:lesson/modules/:module/read',
-    name: 'module-read',
     component: () => import('../views/ModuleCreateEditView.vue'),
     meta: { requiresAuth: true },
   },

@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException
  * @property repository The repository instance for performing CRUD operations on topics.
  * @property authorizationService The service for handling authorization logic.
  * @property logRepository The repository for logging actions performed on topics.
+ * @property logService The service for logging actions performed on topics.
  * @property userRepository The repository for managing user entities.
  */
 @Service
@@ -23,6 +24,7 @@ class TopicService(
     override val repository: TopicRepository,
     private val authorizationService: AuthorizationService,
     private val logRepository: LogRepository,
+    private val logService: LogService,
     userRepository: UserRepository
 ) : IServiceImpl<Topic, TopicFindDTO, TopicFindDTO, TopicCreateDTO, TopicCreateDTO>(repository, userRepository) {
 
@@ -63,7 +65,7 @@ class TopicService(
         if (!authorizationService.isTrusted(user))
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         val topic = repository.saveAndFlush(converter.toEntity(dto))
-        logRepository.saveAndFlush(createLogEntry(userDto, topic, "create"))
+        logService.log(userDto, topic, "create")
         converter.toGetDTO(topic)
     }
 
@@ -78,7 +80,7 @@ class TopicService(
     override fun update(id: Int, dto: TopicCreateDTO, userDto: UserAuthenticateDto?) =
         checkEditAccess(id, userDto) { topic, _ ->
             val topicUpdate = repository.saveAndFlush(converter.merge(topic, dto))
-            logRepository.saveAndFlush(createLogEntry(userDto, topicUpdate, "update"))
+            logService.log(userDto, topicUpdate, "update")
             converter.toGetDTO(topicUpdate)
         }
 
@@ -89,7 +91,7 @@ class TopicService(
      * @param userDto an optional parameter representing the authenticated user requesting the deletion.
      */
     override fun delete(id: Int, userDto: UserAuthenticateDto?) = checkEditAccess(id, userDto) { topic, _ ->
-        logRepository.saveAndFlush(createLogEntry(userDto, topic, "delete"))
+        logService.log(userDto, topic, "delete")
         repository.delete(topic)
     }
 

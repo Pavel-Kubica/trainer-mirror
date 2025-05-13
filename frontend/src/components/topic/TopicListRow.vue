@@ -42,7 +42,7 @@ onMounted(() => {
       <span>{{ t("$vuetify.topic_list_modules", numberOfModulesWithTopic) }}</span>
     </td>
     <td style="text-align: right">
-      <TooltipIconButton icon="mdi-pencil" color="black"
+      <TooltipIconButton icon="mdi-pencil"
                          @click="(e) => { e.stopPropagation(); editTopic = topic; editDialog = true }" />
       <TooltipIconButton icon="mdi-delete" color="red"
                          @click="(e) => { e.stopPropagation(); deleteTopic = topic; deleteDialog = true }" />

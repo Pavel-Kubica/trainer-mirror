@@ -23,4 +23,15 @@ interface LessonModuleRepository: IRepository<LessonModule> {
     @Query("SELECT lm FROM LessonModule lm WHERE lm.lesson = :lesson")
     fun getModulesByLesson (lesson: Lesson) : List<LessonModule>
 
+    /**
+     * Retrieves a LessonModule entity based on the provided module id.
+     * Note, that it seems that you will always get maximally one result,
+     * because even when you copy existing modules, it creates another record
+     * with unique id, it is not just a reference.
+     *
+     * @param module id of the module with whom are you searching
+     */
+    @Query("SELECT lm FROM LessonModule lm WHERE lm.module = :module")
+    fun getLessonByModuleId(module : Module) : LessonModule
+
 }

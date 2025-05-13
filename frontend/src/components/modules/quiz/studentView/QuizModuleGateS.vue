@@ -44,7 +44,6 @@ const enterQuiz = () => {
                   sState.value = studentStates[1]
                 })
                 .catch((err) => {
-                  console.log(err)
                   error.value = `Chyba při načítání: ${err.code}`
                 })
 
@@ -55,7 +54,6 @@ const enterQuiz = () => {
           }
         }
         else{
-          console.log('wrong code')
           wrongCode.value = true
           setTimeout(() => {wrongCode.value = false}, 10000)
 
@@ -64,7 +62,6 @@ const enterQuiz = () => {
       .catch((err) => {
         wrongCode.value = true
         setTimeout(() => {wrongCode.value = false}, 10000)
-        console.log(err)
         error.value = `Chyba při načítání: ${err.code}`
       })
 }

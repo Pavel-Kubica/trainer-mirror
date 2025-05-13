@@ -32,7 +32,7 @@ const userFilterModule = (module, user) => {
       }))" :key="moduleUsersPair.module.id">
         <template v-if="moduleUsersPair.users.length">
           <router-link class="text-decoration-none"
-                       :to="new Nav.LessonModuleUser(lesson, moduleUsersPair.module, {id: -1}).routerPath()">
+                       :to="new Nav.LessonSolutionsModule(lesson, moduleUsersPair.module, {id: -1}).routerPath()">
             {{ moduleUsersPair.module.name }}
             <v-tooltip activator="parent" location="top">
               {{ t('$vuetify.lesson_user_list_header_solution') }}

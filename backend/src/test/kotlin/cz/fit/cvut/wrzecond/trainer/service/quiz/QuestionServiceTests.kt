@@ -29,6 +29,7 @@ import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.web.server.ResponseStatusException
 import java.sql.Timestamp
 import java.time.Instant
+import cz.fit.cvut.wrzecond.trainer.service.LogService
 
 @SpringBootTest(classes = [QuestionService::class])
 class QuestionServiceTests(
@@ -46,6 +47,7 @@ class QuestionServiceTests(
     @MockBean val quizroomStudentRepo : QuizroomStudentRepo,
     @MockBean val studentModuleRepo : StudentModuleRepository,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
     @MockBean val lessonRepo: LessonRepository,
     @MockBean(answer = Answers.CALLS_REAL_METHODS) val converterService: ConverterService,
     @MockBean val fileService: FileService,

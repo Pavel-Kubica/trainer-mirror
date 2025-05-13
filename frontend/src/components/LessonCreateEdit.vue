@@ -1,20 +1,19 @@
 <script setup>
-import { ref, inject, onMounted, provide } from 'vue'
+import {ref, inject, onMounted, provide} from 'vue'
 import { useLocale } from 'vuetify'
 import { onBeforeRouteLeave } from 'vue-router'
 import router from '@/router'
-import { courseApi, lessonApi, lessonModuleApi } from '@/service/api'
+import { courseApi, lessonApi } from '@/service/api'
 import { useUserStore } from '@/plugins/store'
 import * as Nav from '@/service/nav'
 import {
-  LESSON_EDIT_ITEMS, LESSON_EDIT_ITEM_INFO, LESSON_EDIT_ITEM_TEXT, LESSON_EDIT_ITEM_MOD, LESSON_EDIT_ITEM_RULE
+  LESSON_EDIT_ITEMS, LESSON_EDIT_ITEM_INFO, LESSON_EDIT_ITEM_TEXT, LESSON_EDIT_ITEM_RULE
 } from '@/plugins/constants'
 
 import TextEditor from '@/components/custom/TextEditor.vue'
 import LoadingScreen from '@/components/custom/LoadingScreen.vue'
 import LessonCreateEditMenu from '@/components/lesson/edit/LessonCreateEditMenu.vue'
 import LessonCreateEditPartLesson from '@/components/lesson/edit/LessonCreateEditPartLesson.vue'
-import LessonCreateEditPartModules from '@/components/lesson/edit/LessonCreateEditPartModules.vue'
 import UnsavedChangesDialog from '@/components/lesson/UnsavedChangesDialog.vue'
 import LessonCreateEditPartRules from "@/components/lesson/edit/LessonCreateEditPartRules.vue";
 
@@ -39,20 +38,14 @@ const routerNext = ref(() => {})
 const unsavedChangesDialog = ref(false)
 provide('unsavedChangesDialog', unsavedChangesDialog)
 
-const removeModule = async (module) => {
-  lessonData.value = null
-  lessonModuleApi.removeLessonModule(lesson.value.id, module.id)
-      .then(reload)
-      .catch((err) => { error.value = err.code })
-}
+const weekStart = ref(null)
+const weekEnd = ref(null)
 
 // Just create lesson
 const createLesson = () => { return lessonApi.createLesson(lessonData.value) }
 const editLesson = () => {
   // Edit module order + edit lesson
-  return Promise.all(lesson.value.modules.map((mod, index) => lessonModuleApi.putLessonModule(
-      lesson.value.id, mod.id, { order: index + 1 }
-  )).concat([lessonApi.editLesson(lesson.value.id, lessonData.value)]))
+  return lessonApi.editLesson(lesson.value.id, lessonData.value)
 }
 
 const reload = async () => {
@@ -80,49 +73,80 @@ const submit = () => {
           text: t(`$vuetify.lesson_${key}_notification_text`),
         })
         if (lesson.value) await reload()
-        else await router.push(new Nav.LessonEdit(result).routerPath())
+        else await router.push(new Nav.LessonDetail(result).routerPath())
       })
       .catch((err) => {
         error.value = err.code
       })
 }
 
+const setDefaultStartEnd = () => {
+  lessonData.value.timeStart = weekStart.value;
+  lessonData.value.timeLimit = weekEnd.value;
+  lessonData.value.referenceSolutionAccessibleFrom = weekEnd.value;
+}
+provide('setDefaultStartEnd', setDefaultStartEnd);
+
 onMounted(async () => {
-  console.log("lesson - ", lesson)
+  console.log("loading")
   if (props.courseId && props.weekId) {
     courseApi.courseWeekDetail(props.courseId, props.weekId)
         .then((result) => {
-          appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result.course), new Nav.LessonCreate(result)]
           week.value = result
           lesson.value = null
+          weekStart.value = result.from;
+          weekEnd.value = new Date(result.until);
+          weekEnd.value.setHours(23,59,59);
+          appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result.course)]
+          if (week.value.lessons.length)
+            appState.value.navigation.push(new Nav.LessonDetail(week.value.lessons[0], week.value))
+          appState.value.navigation.push(new Nav.LessonCreate(result))
           lessonData.value = {
             weekId: result.id, name: "", hidden: true, order: result.lessons.length + 1, type: 'TUTORIAL',
-            lockCode: null, timeStart: null, timeLimit: null, description: ''
+            lockCode: null, description: ''
           }
+          setDefaultStartEnd()
+          console.log("loaded")
         })
         .catch((err) => { error.value = err.code })
   }
   else {
     lessonApi.lessonDetailTeacher(props.lessonId)
         .then((result) => {
-          appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result.week.course), new Nav.LessonEdit(result)]
           lesson.value = result
           week.value = result.week
+          weekStart.value = result.week.from;
+          weekEnd.value = new Date(result.week.until);
+          weekEnd.value.setHours(23,59,59);
           lessonData.value = Object.assign({}, result)
+          appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result.week.course), new Nav.LessonDetail(result, week.value) , new Nav.LessonEdit(result)]
+          console.log("loaded")
         })
         .catch((err) => { error.value = err.code })
   }
-
-  onBeforeRouteLeave((to, from, next) => {
-    if (JSON.stringify(lesson.value) === JSON.stringify(lessonData.value) || to.name === 'lesson-edit') { // ok
-      next()
-      return
-    }
-    appState.value.leftDrawer = true
-    routerNext.value = next
-    unsavedChangesDialog.value = true
-  })
+  document.addEventListener("keydown", handleCtrlS)
 })
+
+onBeforeRouteLeave((to, from, next) => {
+  routerNext.value = () => { document.removeEventListener("keydown", handleCtrlS); next(); }
+
+  if (JSON.stringify(lesson.value) === JSON.stringify(lessonData.value) || to.name === 'lesson-edit' || to.name === 'lesson-detail') { // ok
+    routerNext.value()
+    return
+  }
+  appState.value.leftDrawer = true
+  unsavedChangesDialog.value = true
+})
+
+const handleCtrlS = (event) => {
+  if (event.ctrlKey && event.key.toLowerCase() === 's') {
+    if (event.repeat)
+      return;
+    event.stopPropagation();
+    event.preventDefault();
+    submit();
+  }
+}
 </script>
 
 <template>
@@ -137,8 +161,6 @@ onMounted(async () => {
               <LessonCreateEditPartLesson v-if="lessonEditItem.id === LESSON_EDIT_ITEM_INFO" />
               <TextEditor v-else-if="lessonEditItem.id === LESSON_EDIT_ITEM_TEXT" v-model="lessonData.description"
                           :editable="true" class="max-height-tab mb-4 assignment-editor" />
-              <LessonCreateEditPartModules v-else-if="lesson && lessonEditItem.id === LESSON_EDIT_ITEM_MOD"
-                                           :error="error" :reload="reload" :remove-module="removeModule" />
               <LessonCreateEditPartRules v-if="lesson!==null && lessonEditItem.id === LESSON_EDIT_ITEM_RULE"
                                          :error="error" :reload="reload" :lesson-id="lessonData.id"
                                          :edit="true" />

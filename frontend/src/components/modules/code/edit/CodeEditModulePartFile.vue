@@ -4,8 +4,11 @@ import { useLocale } from 'vuetify'
 import { CODE_MODULE_CODE_LIMIT_VALUES } from "@/plugins/constants";
 import CodeEditor from "@/components/custom/CodeEditor.vue";
 
-defineProps(['fileId', 'addFile', 'deleteFile', 'readOnly'])
+defineProps(['fileId', 'addFile', 'readOnly'])
 const codeData = inject('codeData')
+const testToDelete = inject('testToDelete')
+const fileToDelete = inject('fileToDelete')
+const deleteDialog = inject('deleteDialog')
 
 const selectedTab = ref("content")
 const TAB_OPTIONS = ['content', 'reference']
@@ -28,12 +31,12 @@ const translate = (key) => t(`$vuetify.code_module.edit_file_${key}`)
   <v-window v-model="selectedTab">
     <v-window-item v-for="option in TAB_OPTIONS" :key="option" :value="option"
                    :transition="false" :reverse-transition="false">
-      <CodeEditor class="mb-4" :file-id="fileId" :file-key="option" />
+      <CodeEditor class="mb-4" :file-id="fileId" :file-key="option" :disabled="readOnly" />
     </v-window-item>
   </v-window>
 
   <v-btn v-if="codeData.files[fileId].id" class="ms-2 mt-2 mb-4" :disabled="readOnly" color="red" :block="true" size="large" variant="tonal"
-         @click="() => deleteFile(codeData.files[fileId]) ">
+         @click="() => { testToDelete = null; fileToDelete = codeData.files[fileId]; deleteDialog = true }">
     {{ t('$vuetify.code_module.delete_file') }}
   </v-btn>
   <div v-else>

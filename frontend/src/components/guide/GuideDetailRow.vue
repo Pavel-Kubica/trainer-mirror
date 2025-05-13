@@ -8,7 +8,7 @@ defineProps(['mdFiles', 'guideId'])
     <tr v-for="mdFile in mdFiles" :key="mdFile.id">
       <td>{{ mdFile.name }}</td>
       <td>
-        <router-link :to="new Nav.GuideMarkdown(guideId, mdFile.id).routerPath()" class="d-flex justify-end text-decoration-none">
+        <router-link :to="new Nav.GuideMarkdown(guideId, mdFile).routerPath()" class="d-flex justify-end text-decoration-none">
           <v-btn variant="text" icon="mdi-arrow-right" />
         </router-link>
       </td>

@@ -1,27 +1,28 @@
 ### Guarantor interface
 
-As an guarantor most of your added functionality is available through the guarantor button.
-Using this button you can either work with the subject you are assigned to or edit the topics.
+As a guarantor most of your added functionality is available through the guarantor button.
+Using this button you can make changes to the subject you are assigned to and edit topics.
 
 ![](/images_for_md_files/guides/en/guarantor/guarantor_button.png)
 
-### Course creation button
+### Courses
 
-To create a course go to the subjects tab and press the plus sign in front of the subject name.
+A single course corresponds to a single parallel. You can create a course in the "Subjects and courses" tab, using
+"plus" button on a subject's row.
 
-![](/images_for_md_files/guides/en/guarantor/create_course_button.png)
+It is recommended to set the name and short name to both be descriptive of that parallel, for example
+`Lab no. 103, Monday 12:30` and `L103` respectively.
 
-### Course creation
+The access code is a code that students can enter to join this course. Teachers can later change this code.
 
-You will have the option to create the course - add the name, access code, short name and assign teachers
-to the lesson. You can also choose if you want to make the course public.
-You can also choose already existing course to edit from the right drawer.
+You can also choose if you want to make the course public. Usually a user needs to be added to a course in order
+to view it, but a public course is visible to anyone.
 
-![](/images_for_md_files/guides/en/guarantor/create_edit_course.png)
+![](/images_for_md_files/guides/en/guarantor/course_creation.png)
 
 ### Topic creation
 
-The last feature that is now available in the guarantor interface is the creation of topics. You can create a topic that can be later on used to characterize a certain group of modules.
-To create a topic go to the topics tab and press the CREATE A TOPIC button.
+The last feature available in the admin interface is the creation of topics.
+Topics can later be used to characterize a certain group of modules.
 
 ![](/images_for_md_files/guides/en/guarantor/topic_creation.png)

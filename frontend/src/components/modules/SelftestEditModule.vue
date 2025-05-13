@@ -42,7 +42,7 @@ const oldQuizData = ref(null)
 const allQuestions = ref([])
 const questionsByAuthor = ref([])
 
-createEditCallback.value = (module) => {
+createEditCallback.value = async (module) => {
 
   if (!selftestQuestions.value)
     return
@@ -56,13 +56,13 @@ createEditCallback.value = (module) => {
   }
 
   if(props.moduleId){
-    api.editQuiz(oldQuizData.value.id, selftest)
+    await api.editQuiz(oldQuizData.value.id, selftest)
         .catch((err) => {
           console.log(err)
         })
   }
   else{
-    api.createQuiz(selftest)
+    await api.createQuiz(selftest)
         .catch((err) => {
           console.log(err)
         })

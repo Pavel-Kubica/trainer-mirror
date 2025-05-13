@@ -18,7 +18,8 @@ class ScoringRuleService (
     private val userRepository: UserRepository,
     private val lessonRepository: LessonRepository,
     private val authorizationService: AuthorizationService,
-    private val logRepository: LogRepository
+    private val logRepository: LogRepository,
+    private val logService: LogService
 ) :
     IServiceImpl<ScoringRule, ScoringRuleFindDTO, ScoringRuleGetDTO, ScoringRuleCreateDTO, ScoringRuleUpdateDTO>(
         repository,
@@ -69,7 +70,7 @@ class ScoringRuleService (
         println(sr)
         val scoringRule = repository.saveAndFlush(converter.toEntity(dto))
 
-        logRepository.saveAndFlush(createLogEntry(userDto, scoringRule, "create"))
+        logService.log(userDto, scoringRule, "create")
         converter.toGetDTO(scoringRule)
     }
 
@@ -85,7 +86,7 @@ class ScoringRuleService (
     override fun update(id: Int, dto: ScoringRuleUpdateDTO, userDto: UserAuthenticateDto?) =
         checkEditAccess(id, userDto) { scoringRule, _ ->
             val updatedRule = repository.saveAndFlush(converter.merge(scoringRule, dto))
-            logRepository.saveAndFlush(createLogEntry(userDto, updatedRule, "update"))
+            logService.log(userDto, updatedRule, "update")
             converter.toGetDTO(updatedRule)
         }
 
@@ -97,7 +98,7 @@ class ScoringRuleService (
      */
     override fun delete(id: Int, userDto: UserAuthenticateDto?): Unit = checkEditAccess(id, userDto) { scoringRule, _ ->
         repository.delete(scoringRule)
-        logRepository.saveAndFlush(createLogEntry(userDto, scoringRule, "delete"))
+        logService.log(userDto, scoringRule, "delete")
     }
 
     /**

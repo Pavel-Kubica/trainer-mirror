@@ -21,6 +21,7 @@ import java.time.Instant
  * @property lessonRepository Repository for lesson entities.
  * @property subjectRepository Repository for subject entities.
  * @property logRepository Repository for log entities.
+ * @property logService Service for log entities.
  * @property studentModuleRepository Repository for student module entities.
  * @property sandboxUserRepository Repository for sandbox user entities.
  */
@@ -34,6 +35,7 @@ class CourseUserService(
     private val lessonRepository: LessonRepository,
     private val subjectRepository: SubjectRepository,
     private val logRepository: LogRepository,
+    private val logService: LogService,
     private val studentModuleRepository: StudentModuleRepository,
     private val sandboxUserRepository: SandboxUserRepository
 ) : IServiceBase<Course>(repository, userRepository) {
@@ -99,7 +101,8 @@ class CourseUserService(
                 if (potentialTeacher != null) {
                     CourseService.createSandbox(
                         repository, cuRepository, weekRepository, lessonRepository,
-                        roleRepository, subjectRepository, userRepository, logRepository, studentModuleRepository, sandboxUserRepository, potentialTeacher
+                        roleRepository, subjectRepository, userRepository, logRepository, logService,
+                        studentModuleRepository, sandboxUserRepository, potentialTeacher
                     )
                 }
             }
@@ -116,7 +119,7 @@ class CourseUserService(
             CourseUser(course, otherUser, role)
         }
         val result = cuRepository.saveAllAndFlush(courseUsers).map {
-            logRepository.saveAndFlush(createLogEntry(userDto, it, "create"))
+            logService.log(userDto, it, "create")
             converter.toReadDTO(it, course) }
         result
     }
@@ -136,7 +139,7 @@ class CourseUserService(
         val otherUser = userRepository.getReferenceById(userId)
         val cu = cuRepository.getByCourseUser(course, otherUser) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
         cuRepository.delete(cu)
-        logRepository.saveAndFlush(createLogEntry(userDto, cu, "delete"))
+        logService.log(userDto, cu, "delete")
     }
 
 }

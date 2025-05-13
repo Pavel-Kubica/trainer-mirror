@@ -1,5 +1,5 @@
 <script setup>
-import {createApp, inject, shallowRef, h, ref, watch} from 'vue'
+import {createApp, inject, shallowRef, h, ref, watch, onMounted} from 'vue'
 import { Codemirror } from 'vue-codemirror'
 import { useLocale, useTheme } from 'vuetify'
 import { cpp } from '@codemirror/lang-cpp'
@@ -218,19 +218,17 @@ class CreateCommentMarker extends GutterMarker {
   }
 }
 
-prepareCommentGutters()
-
-prepareCommentGutters()
-prepareCommentGutters()
-prepareCommentGutters()
-prepareCommentGutters()
+onMounted(() => {
+  if (!props.codeKey)
+    prepareCommentGutters()
+})
 
 </script>
 
 <template>
   <v-theme-provider with-background>
     <codemirror v-if="codeKey" v-model="codeData[codeKey]" :autofocus="true" :indent-with-tab="true" :tab-size="4"
-                :extensions="[cpp()].concat(darkMode())" />
+                :disabled="disabled" :extensions="[cpp()].concat(darkMode())" />
     <codemirror v-else :key="updateKey" v-model="codeData.files[fileId][fileKey]" :autofocus="true" :indent-with-tab="true"
                 :tab-size="4" :disabled="disabled" :extensions="gutters.concat([cpp(), charCtr()]).concat(darkMode())"
                 @ready="handleReady"

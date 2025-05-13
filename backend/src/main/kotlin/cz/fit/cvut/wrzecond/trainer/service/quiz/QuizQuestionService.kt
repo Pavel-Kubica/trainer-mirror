@@ -12,6 +12,7 @@ import cz.fit.cvut.wrzecond.trainer.repository.quiz.QuizRepo
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import cz.fit.cvut.wrzecond.trainer.service.LogService
 
 /**
  * Service class for managing quiz questions.
@@ -21,12 +22,14 @@ import org.springframework.web.server.ResponseStatusException
  * @param quizRepository The repository for quizzes.
  * @param logRepository The repository for logs.
  * @param userRepository The repository for users.
+ * @param logService The service for logs.
  */
 @Service
 class QuizQuestionService(override val repository: QuizQuestionRepo,
                           private val questionRepository: QuestionRepo,
                           private val quizRepository: QuizRepo,
-                          private val logRepository: LogRepository, userRepository: UserRepository)
+                          private val logRepository: LogRepository, userRepository: UserRepository,
+                          private val logService: LogService)
     : IServiceBase<QuizQuestion>(repository, userRepository) {
 
 
@@ -47,7 +50,7 @@ class QuizQuestionService(override val repository: QuizQuestionRepo,
         val newQq = QuizQuestion(quiz, question, dto.orderNum ?: qq?.orderNum ?: (quiz.questions.size + 1), id)
         val savedNewQq = repository.saveAndFlush(newQq)
 
-        logRepository.saveAndFlush(createLogEntry(userDto, savedNewQq, "create"))
+        logService.log(userDto, savedNewQq, "create")
         converter.toReadDTO(savedNewQq)
     }
 
@@ -61,7 +64,7 @@ class QuizQuestionService(override val repository: QuizQuestionRepo,
             = checkAccess(quizId, questionId, userDto) { quiz, question, _ ->
         val qq = repository.getByQuizQuestion(quiz, question) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
         repository.delete(qq)
-        logRepository.saveAndFlush(createLogEntry(userDto, qq, "delete"))
+        logService.log(userDto, qq, "delete")
     }
 
 

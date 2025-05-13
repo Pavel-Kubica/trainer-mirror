@@ -1,5 +1,5 @@
 <script setup>
-import {inject, onMounted, provide, ref} from 'vue'
+import {computed, inject, onMounted, provide, ref} from 'vue'
 import {useLocale} from 'vuetify'
 import {useUserStore} from '@/plugins/store'
 import {courseUserApi, lessonApi, lessonModuleApi, moduleApi, topicApi, subjectApi} from '@/service/api'
@@ -17,13 +17,13 @@ import {onBeforeRouteLeave} from "vue-router";
 import UnsavedChangesDialog from "@/components/lesson/UnsavedChangesDialog.vue";
 import DiscussionMenu from "@/components/modules/discussion/DiscussionMenu.vue";
 import SelftestEditModule from "@/components/modules/SelftestEditModule.vue";
-import quizApi from "@/service/quizApi";
 import TemplateCreateEdit from "@/components/templates/TemplateCreateEdit.vue";
 
 const appState = inject('appState')
 const userStore = useUserStore()
 const props = defineProps(['lessonId', 'moduleId', 'readOnly'])
 const {t} = useLocale()
+const creating = computed(() => !props.moduleId)
 
 const lesson = ref(null)
 const teachers = ref([])
@@ -35,9 +35,7 @@ const subjects = ref([])
 const alreadySelectedSubjects = ref([])
 
 const moduleData = ref(null)
-const createEditCallback = ref((module) => {
-  console.log(module)
-})
+const createEditCallback = ref(() => { })
 const moduleTopics = ref([])
 const moduleSubjects = ref([])
 provide('moduleData', moduleData)
@@ -55,10 +53,9 @@ userStore.moduleEditItemIds[props.moduleId ?? -1] ?? MODULE_EDIT_ITEM_INFO
 provide('moduleEditTabList', moduleEditTabList)
 provide('moduleEditItem', moduleEditItem)
 
-const routerNext = ref(() => {
-})
-provide('routerNext', routerNext)
+const routerNext = ref(() => {})
 const unsavedChangesDialog = ref(false)
+provide('routerNext', routerNext)
 provide('unsavedChangesDialog', unsavedChangesDialog)
 
 const reload = async (moduleId, depends) => {
@@ -68,21 +65,18 @@ const reload = async (moduleId, depends) => {
         module.value = moduleData.value = result
         alreadySelectedTopics.value = moduleTopics.value
         alreadySelectedSubjects.value = moduleSubjects.value
-        if (moduleData.value.type === 'QUIZ') {
-          quizApi.quizDetailByModule(moduleId ?? props.moduleId)
-        }
       })
       .catch((err) => {
         error.value = err.code
       })
 }
 
-const submitAllowed = () => {
+const submitAllowed = computed(() => {
   if (props.readOnly === true) {
     return false
   }
-  return module.value || (moduleData.value && moduleData.value.name && moduleData.value.type)
-}
+  return moduleData.value && moduleData.value.name && moduleData.value.type && moduleSubjects.value.length;
+})
 
 const processTags = (tagsBefore, tagsAfter, promises, moduleId, funcDelete, funcAdd) => {
   let topicsToDelete = new Set([])
@@ -103,9 +97,8 @@ const processTags = (tagsBefore, tagsAfter, promises, moduleId, funcDelete, func
 }
 
 const submit = async () => {
-  if (!submitAllowed())
+  if (!submitAllowed.value)
     return false
-  const editing = module.value !== null
   const moduleDataVal = moduleData.value
   moduleData.value = null // display progress
   if (moduleDataVal.type === 'TEMPLATE') {
@@ -115,16 +108,18 @@ const submit = async () => {
       type: "success", title: t(`$vuetify.template_create_notification_title`),
       text: t(`$vuetify.template_create_notification_text`),
     })
-    console.log(lesson.value)
     await router.push(new Nav.LessonEdit(lesson.value).routerPath())
     await reload()
   } else {
-    const promise = editing ? moduleApi.editModule(props.moduleId, moduleDataVal) : moduleApi.createModule(moduleDataVal)
+    const promise = creating.value ? moduleApi.createModule(moduleDataVal) : moduleApi.editModule(props.moduleId, moduleDataVal)
     promise.then((resultModule) => {
-      const promises = [lessonModuleApi.putLessonModule(props.lessonId, resultModule.id, {
-        order: editing ? null : lesson.value.modules.length,
-        depends: moduleDataVal.depends
-      })]
+      const promises = []
+      if (creating.value || lesson.value.modules.some((mod) => mod.id === +props.moduleId)) { // only try to put lessonmodule if it already exists, or we are creating a new module
+        promises.push(lessonModuleApi.putLessonModule(props.lessonId, resultModule.id, {
+          order: creating.value ? lesson.value.modules.length : null,
+          depends: moduleDataVal.depends
+        }))
+      }
       if (moduleDataVal.file)
         promises.push(moduleApi.putModuleFile(resultModule.id, moduleDataVal.file))
 
@@ -137,22 +132,20 @@ const submit = async () => {
             try {
               await fn(resultModule)
             } catch (err) {
-              await moduleApi.deleteModule(resultModule.id) // rollback
+              if (creating.value)
+                await moduleApi.deleteModule(resultModule.id) // rollback
               error.value = err.code
               moduleData.value = moduleDataVal
               return
             }
 
-            const key = editing ? 'edit' : 'create'
+            const key = creating.value ? 'create' : 'edit'
             appState.value.notifications.push({
               type: "success", title: t(`$vuetify.module_${key}_notification_title`),
               text: t(`$vuetify.module_${key}_notification_text`),
             })
-            if (!editing) await router.push(new Nav.ModuleEdit(resultModule).routerPath())
+            if (creating.value) await router.push(new Nav.LessonModuleEdit(lesson.value, resultModule).routerPath())
             await reload(resultModule.id, moduleDataVal.depends)
-            if (resultModule.type === 'QUIZ') {
-              await reload()
-            }
           })
           .catch((err) => error.value = err.code)
     }).catch((err) => error.value = err.response.status === 412 ? 'ERR_CONCURRENT' : err.code)
@@ -161,27 +154,33 @@ const submit = async () => {
 
 onMounted(async () => {
   lessonApi.lessonDetailTeacher(props.lessonId)
-      .then(async (result) => {
-        const depends = result.modules.find((mod) => mod.id === parseInt(props.moduleId))?.depends ?? -1
-        lesson.value = result
+      .then(async (resultLesson) => {
+        const depends = resultLesson.modules.find((mod) => mod.id === parseInt(props.moduleId))?.depends ?? -1
+        lesson.value = resultLesson
+        if (creating.value)
+          moduleSubjects.value.push(resultLesson.week.course.subject.id)
         lesson.value.modules = [{
           id: -1,
           name: t('$vuetify.module_edit_no_depend')
-        }].concat(result.modules.filter((mod) => mod.id !== parseInt(props.moduleId)))
+        }].concat(resultLesson.modules)
         if (props.readOnly === true) {
           teachers.value = []
         }
         if (props.readOnly === false) {
-          teachers.value = props.moduleId ? await moduleApi.moduleTeachers(props.moduleId) : await courseUserApi.courseTeachers(result.week.course.id)
+          teachers.value = props.moduleId ? await moduleApi.moduleTeachers(props.moduleId) : await courseUserApi.courseTeachers(resultLesson.week.course.id)
         }
-        topics.value = await topicApi.listTopics()
-        subjects.value = await subjectApi.listSubjects()
+        const [top, sub] = await Promise.all([
+          topicApi.listTopics(),
+          subjectApi.listSubjects()
+        ]);
+        topics.value = top;
+        subjects.value = sub;
 
         if (props.moduleId) {
           moduleApi.moduleDetail(props.moduleId)
               .then((moduleResult) => {
-                appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result.week.course),
-                  new Nav.LessonEdit(result), new Nav.ModuleEdit(moduleResult)]
+                appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(resultLesson.week.course),
+                  new Nav.LessonDetail(resultLesson, resultLesson.week), new Nav.LessonModuleEdit(resultLesson, moduleResult)]
                 moduleResult.depends = depends
                 module.value = moduleResult
                 moduleData.value = Object.assign({}, moduleResult)
@@ -190,13 +189,15 @@ onMounted(async () => {
                 error.value = err.code
               })
 
-          alreadySelectedTopics.value = await moduleApi.getModuleTopics(props.moduleId)
-          moduleTopics.value = alreadySelectedTopics.value
-          alreadySelectedSubjects.value = await moduleApi.getModuleSubjects(props.moduleId)
-          moduleSubjects.value = alreadySelectedSubjects.value
+          const [selectedTopics, selectedSubjects] = await Promise.all([
+            moduleApi.getModuleTopics(props.moduleId),
+            moduleApi.getModuleSubjects(props.moduleId)
+          ])
+          alreadySelectedTopics.value = moduleTopics.value = selectedTopics;
+          alreadySelectedSubjects.value = moduleSubjects.value = selectedSubjects;
         } else {
-          appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result.week.course),
-            new Nav.LessonEdit(result), new Nav.ModuleCreate()]
+          appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(resultLesson.week.course),
+            new Nav.LessonDetail(resultLesson, resultLesson.week), new Nav.ModuleCreate(resultLesson)]
           module.value = null
           moduleData.value = {
             name: '', author: userStore.user, editors: [], minPercent: 100, difficulty: null, assignment: '',
@@ -209,20 +210,31 @@ onMounted(async () => {
       .catch((err) => {
         error.value = err.code
       })
+  document.addEventListener("keydown", handleCtrlS)
 
   onBeforeRouteLeave((to, from, next) => {
-    if ((JSON.stringify(module.value) === JSON.stringify(moduleData.value)) || props.readOnly) { // ok
-      next()
+    routerNext.value = () => { if (to.name !== 'module-edit') document.removeEventListener("keydown", handleCtrlS); next(); }
+
+    const newModuleDataComparable = creating.value ? undefined : Object.fromEntries(Object.entries(moduleData.value).filter(([key]) => key !== 'file'))
+    if (creating.value || props.readOnly || (JSON.stringify(module.value) === JSON.stringify(newModuleDataComparable)))
+    {
+      routerNext.value()
       return
     }
+    // Unsaved changes
     appState.value.leftDrawer = true
-    routerNext.value = next
     unsavedChangesDialog.value = true
-
-
   })
 })
-
+const handleCtrlS = (event) => {
+  if (event.ctrlKey && event.key.toLowerCase() === 's') {
+    if (event.repeat)
+      return;
+    event.stopPropagation();
+    event.preventDefault();
+    submit();
+  }
+}
 </script>
 
 <template>
@@ -251,10 +263,15 @@ onMounted(async () => {
               <CodeEditModule v-if="moduleData.type === 'CODE'" :module-id="moduleId" :read-only="props.readOnly" />
               <TemplateCreateEdit v-if="moduleData.type === 'TEMPLATE'" />
               <!-- TextModule / AssignmentModule have no content -->
-              <v-btn class="mb-2 mx-2" type="submit" color="blue" size="large" variant="tonal"
-                     :block="true" :disabled="!submitAllowed()">
-                {{ t(`$vuetify.action_${module ? 'edit' : 'create'}`) }}
-              </v-btn>
+              <span>
+                <v-btn class="mb-2 mx-2" type="submit" color="blue" size="large" variant="tonal"
+                       :block="true" :disabled="!submitAllowed">
+                  {{ t(`$vuetify.action_${module ? 'edit' : 'create'}`) }}
+                </v-btn>
+                <v-tooltip v-if="!submitAllowed && !readOnly" activator="parent" location="top">
+                  {{ t('$vuetify.module_edit_not_allowed') }}
+                </v-tooltip>
+              </span>
             </v-form>
           </v-card-item>
         </v-card>

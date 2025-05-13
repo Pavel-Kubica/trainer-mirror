@@ -1,5 +1,5 @@
 <script setup>
-import {inject, provide, onMounted, ref} from 'vue'
+import {inject, provide, onMounted, ref, computed} from 'vue'
 import api from '@/service/quizApi'
 import TextEditor from "@/components/custom/TextEditor.vue";
 import {useUserStore} from "@/plugins/store";
@@ -18,6 +18,7 @@ import QuestionConnect from "@/components/modules/questionTypes/QuestionConnect.
 import {onBeforeRouteLeave} from "vue-router";
 import QuestionList from "@/components/modules/QuestionList.vue";
 import quizApi from "@/service/quizApi";
+import DeleteDialog from "@/components/custom/DeleteDialog.vue";
 const { t } = useLocale()
 
 
@@ -27,7 +28,6 @@ const props = defineProps(['moduleId', 'readOnly','reload', 'topics', 'subjects'
 
 const createEditCallback  = inject('createEditCallback', () => {})
 
-const appState = inject('appState')
 const routerNext = inject('routerNext')
 const unsavedChangesDialog = inject('unsavedChangesDialog')
 
@@ -133,9 +133,6 @@ createEditCallback.value = async (module) => {
   }
   else{
     await api.createQuiz(quiz)
-        .then( (q) => {
-          console.log("Kviz vytvoreny" + q)
-        })
         .catch((err) => {
           console.log(err)
           error.value = `Chyba při vytváření: ${err.code}`
@@ -464,15 +461,11 @@ const editQuestion = async () => {
 
 
 
-const removeQuestionFromQuiz =  (q) => {
-  console.log("remove q - ", q)
-  let delQ = quizQuestions.value.find((it) => {return it.id === q })
-  console.log("delQ - ", delQ)
+const removeQuestionFromQuiz =  (questionId) => {
+  let delQ = quizQuestions.value.find((it) => {return it.id === questionId })
   let qIndex = quizQuestions.value.indexOf(delQ)
-  console.log("quizQuestions - ", quizQuestions)
-  console.log("qIndex - ", qIndex)
   quizQuestions.value.splice(qIndex,1)
-
+  questionRemoveDialog.value = false
 }
 
 
@@ -499,56 +492,33 @@ const removeQuestionFromQuiz =  (q) => {
 }*/
 
 const addQuestion = (question) => {
-  api.listQuestionsByUsername(userStore.user.username)
-      .then((result) => {
-        questions.value = result
-        questions.value.forEach(
-            (q) => {
-              api.questionCorrect(q.id)
-                  .then((qCorr) => {
+  api.questionCorrect(question.id)
+    .then((qCorr) => {
+      question.correctAnswerData = qCorr.correctAnswerData
+      question.explanation = qCorr.explanation
 
-                    q.correctAnswerData = qCorr.correctAnswerData
-                    q.explanation = qCorr.explanation
+      //pridane novo vytvorenej otazky do kvizu
+      quizQuestions.value.push(question)
+      questionData.value = ''
+      option1.value = ''
+      option2.value = ''
+      option3.value = ''
+      option4.value = ''
+      correctAnswers.value = []
 
-                    if(questionsData.value.indexOf(q.questionData) === -1)
-                      questionsData.value.push(q.questionData)
+      options.value = []
+      explanation.value = ''
+      timeLimit.value = 15
 
-                    //pridane novo vytvorenej otazky do kvizu
-                    if(question.id === q.id){
-                      quizQuestions.value.push(q)
-                    }
+      createQDialog.value = false
+      showQType.value = false
+      selectedQType.value = 'MULTICHOICE'
 
-                    questionData.value = ''
-                    option1.value = ''
-                    option2.value = ''
-                    option3.value = ''
-                    option4.value = ''
-                    correctAnswers.value = []
-
-                    options.value = []
-                    explanation.value = ''
-                    timeLimit.value = 15
-
-                    createQDialog.value = false
-                    showQType.value = false
-                    selectedQType.value = 'MULTICHOICE'
-
-                    qAllert.value = 'CREATED'
-                    setTimeout(() => {qAllert.value = ''}, 3000)
-
-                    /*quizApi.putQuizQuestion(oldQuizData.value.id, q.id, {
-                      orderNum: (oldQuizData.value.questions.slice(-1)[0]?.order ?? 0) + 1
-                    })
-                        .catch((err) => { error.value = err.code })*/
-                  })
-            }
-        )
-
-      })
-      .catch((err) => {
-        error.value = `Chyba při načítání: ${err.code}`
-      })
-
+      qAllert.value = 'CREATED'
+      setTimeout(() => {
+        qAllert.value = ''
+      }, 3000)
+    })
 }
 
 const createQuestion = () => {
@@ -639,11 +609,10 @@ const createQuestion = () => {
 
 onMounted(async () => {
   onBeforeRouteLeave((to, from, next) => {
-    if(JSON.stringify(oldQuizData.value.questions) === JSON.stringify(quizQuestions.value.map( (it) => it.id))){
+    if (JSON.stringify(oldQuizData.value?.questions) === JSON.stringify(quizQuestions.value.map( (it) => it.id))){
       next()
       return
     }
-    appState.value.leftDrawer = true
     routerNext.value = next
     unsavedChangesDialog.value = true
   })
@@ -708,12 +677,43 @@ const addQuestionDialogDismiss = (shouldReload) => {
   if (shouldReload) props.reload()
 }
 
+const questionRemoveDialog = ref(false)
+const questionToRemove = ref(null)
+provide('deleteDialog', questionRemoveDialog)
+
+const deleteDialogTexts = computed(() => {
+  if (questionToRemove.value)
+    return {
+      title: '$vuetify.quiz_module.remove_question',
+      start: '$vuetify.quiz_module.remove_question_dialog_start',
+      end: '$vuetify.quiz_module.remove_question_dialog_end',
+    }
+  else
+    return {
+      itemName: '',
+      title: '',
+      start: '',
+      middle: '',
+      end: '',
+    }
+})
+
 </script>
 
 <template>
-  <v-dialog v-model="addQuestionDialog" width="80%">
+  <DeleteDialog item-name=""
+                :title="deleteDialogTexts.title"
+                :text-start="deleteDialogTexts.start"
+                text-before-line-break=""
+                :text-second-line="deleteDialogTexts.end"
+                :on-cancel="() => questionRemoveDialog = false"
+                :on-confirm="() => removeQuestionFromQuiz(questionToRemove.id)"
+                :text-confirm-button="'$vuetify.action_remove'" />
+  <v-dialog v-model="addQuestionDialog" width="80%" height="100%">
     <QuestionList :dismiss="addQuestionDialogDismiss" :reload="reload2" :quiz-id="oldQuizData?.id"
                   :state="questionListState" :delete-question="removeQuestionFromQuiz" :add-question="addQuestion" />
+    <!-- height 100% fixes the dialog to the top, but creates an invisible area below that otherwise wouldn't dismiss it -->
+    <div style="flex: 1" @click="() => addQuestionDialog = false" />
   </v-dialog>
   <v-dialog v-model="editQDialog" width="80%">
     <v-card class="ma-5">
@@ -986,7 +986,7 @@ const addQuestionDialogDismiss = (shouldReload) => {
                   <v-icon>mdi-pencil</v-icon>
                 </v-btn>
                 <v-btn color="red" :disabled="props.readOnly" variant="text" icon="mdi-delete"
-                       @click="removeQuestionFromQuiz(question.id)">
+                       @click="() => { questionToRemove = question; questionRemoveDialog = true }">
                   <v-icon>mdi-delete</v-icon>
                   <v-tooltip
                     activator="parent"

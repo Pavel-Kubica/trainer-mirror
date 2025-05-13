@@ -27,5 +27,5 @@ const difficultyTitle = (diff) => {
     <TooltipEmojiSpan v-if="module.allowedShow" emoji="👁" />
     <TooltipEmojiSpan v-if="module.hidden" emoji="👻" />
   </span>
-  <span v-else>{{ module ? t('$vuetify.lesson_detail_intro_text') : lesson.name }}</span>
+  <span v-else>{{ t('$vuetify.lesson_detail_intro_text') }}</span>
 </template>

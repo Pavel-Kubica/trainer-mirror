@@ -44,11 +44,16 @@ watch(appState, callback, {deep: true})
     <v-btn icon="mdi-timer-outline" :to="{name: 'course-list'}" :active="false" />
 
     <v-toolbar-title>
-      <router-link v-for="(item, index) in appState.navigation" :key="item.name"
-                   class="text-decoration-none"
-                   :to="{name: item.path, params: item.params}" :style="`color: ${isHalloween ? 'black' : 'white'}`">
-        {{ anonymizeName(item) + (index !== (appState.navigation.length - 1) ? ' > ' : '') }}
-      </router-link>
+      <template v-for="(item, index) in appState.navigation" :key="item.name">
+        <router-link v-if="index !== appState.navigation.length - 1"
+                     class="text-decoration-none"
+                     :to="{name: item.path, params: item.params}" :style="`color: ${isHalloween ? 'black' : 'white'}`">
+          {{ anonymizeName(item) + ' > ' }}
+        </router-link>
+        <span v-else class="text-decoration-none">
+          {{ anonymizeName(item) }}
+        </span>
+      </template>
     </v-toolbar-title>
 
     <template v-if="store.isLoggedIn">

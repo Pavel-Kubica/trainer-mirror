@@ -1,5 +1,8 @@
 <script setup>
 import ScoringRuleUserList from "@/components/lesson/scoringRules/userList/ScoringRuleUserList.vue";
+import {inject} from "vue";
+const appState = inject('appState')
+appState.value.leftDrawer = undefined
 </script>
 
 <template>

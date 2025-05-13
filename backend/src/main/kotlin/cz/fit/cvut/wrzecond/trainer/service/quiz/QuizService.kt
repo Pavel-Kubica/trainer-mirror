@@ -14,6 +14,7 @@ import cz.fit.cvut.wrzecond.trainer.service.IServiceImplOld
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import cz.fit.cvut.wrzecond.trainer.service.LogService
 
 
 /**
@@ -24,12 +25,14 @@ import org.springframework.web.server.ResponseStatusException
  * @param moduleRepo The repository that manages Module entities.
  * @param quizQuestionRepo The repository that manages QuizQuestion entities.
  * @param logRepository The repository that logs operations on entities.
+ * @param logService The service that logs operations on entities.
  * @param userRepo The repository that manages User entities.
  */
 @Service
 class QuizService(override val repository: QuizRepo, private val questionRepo: QuestionRepo,
                   private val moduleRepo: ModuleRepository, private val quizQuestionRepo: QuizQuestionRepo,
                   private val logRepository: LogRepository,
+                  private val logService: LogService,
                   userRepo: UserRepository
 )
     : IServiceImplOld<Quiz, QuizFindDTO, QuizGetDTO, QuizCreateDTO, QuizUpdateDTO>(repository, userRepo){
@@ -64,7 +67,7 @@ class QuizService(override val repository: QuizRepo, private val questionRepo: Q
     override fun create(dto: QuizCreateDTO, userDto: UserAuthenticateDto?) = tryCatch {
 
         val newQuiz = repository.saveAndFlush(dto.toEntity())
-        logRepository.saveAndFlush(createLogEntry(userDto, newQuiz, "create"))
+        logService.log(userDto, newQuiz, "create")
 
         var i = 1
         dto.questions.forEach {
@@ -72,7 +75,7 @@ class QuizService(override val repository: QuizRepo, private val questionRepo: Q
                 throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
             val qq = quizQuestionRepo.saveAndFlush(QuizQuestion(newQuiz,questionRepo.findById(it).get(),i++))
-            logRepository.saveAndFlush(createLogEntry(userDto, qq, "create"))
+            logService.log(userDto, qq, "create")
         }
 
         newQuiz.toGetDTO()
@@ -107,13 +110,13 @@ class QuizService(override val repository: QuizRepo, private val questionRepo: Q
                     throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
                 val qq = quizQuestionRepo.saveAndFlush(QuizQuestion(quiz,questionRepo.findById(it).get(),i++))
-                logRepository.saveAndFlush(createLogEntry(userDto, qq, "create"))
+                logService.log(userDto, qq, "create")
             }
 
         }
 
         val updatedQuiz = repository.saveAndFlush(repository.findById(id).get().merge(dto))
-        logRepository.saveAndFlush(createLogEntry(userDto, updatedQuiz, "update"))
+        logService.log(userDto, updatedQuiz, "update")
         updatedQuiz.toGetDTO()
 
     }
@@ -132,12 +135,12 @@ class QuizService(override val repository: QuizRepo, private val questionRepo: Q
 
         val oldQuiz = repository.getByModule(oldModule)
         val newQuiz = repository.saveAndFlush(Quiz(oldQuiz.numOfQuestions, oldQuiz.name, oldQuiz.numOfAttempts, emptyList(), emptyList(), newModule))
-        logRepository.saveAndFlush(createLogEntry(null, newQuiz, "create"))
+        logService.log(null, newQuiz, "create")
 
         val oldQuestions = oldQuiz.questions
         oldQuestions.forEach {
             val qq = quizQuestionRepo.saveAndFlush(QuizQuestion(newQuiz,it.question,it.orderNum))
-            logRepository.saveAndFlush(createLogEntry(null, qq, "create"))
+            logService.log(null, qq, "create")
         }
     }
 

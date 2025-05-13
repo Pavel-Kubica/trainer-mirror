@@ -10,9 +10,11 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import org.mockito.Answers
+import org.mockito.Mock
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpStatus
@@ -25,13 +27,20 @@ class LessonServiceTests(
     @MockBean val lessonRepository: LessonRepository,
     @MockBean val courseRepository: CourseRepository,
     @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val lessonModuleService: LessonModuleService,
     @MockBean val studentModuleRepository: StudentModuleRepository,
+    @MockBean val moduleRepository: ModuleRepository,
+    @MockBean val scoringRuleRepository: ScoringRuleRepository,
+    @MockBean val scoringRuleModuleRepo: ScoringRuleModuleRepo,
     @MockBean val weekRepository: WeekRepository,
     @MockBean val userRepository: UserRepository,
     @MockBean val authorizationService: AuthorizationService,
     @MockBean(answer = Answers.CALLS_REAL_METHODS) val converterService: ConverterService,
     @MockBean val fileService: FileService,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
+    @MockBean val userService: UserService,
+
     val service: LessonService
 ): StringSpec({
 
@@ -59,22 +68,22 @@ class LessonServiceTests(
     val weekDummy = Week("First week", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()),
         course, emptyList(), 1)
     val lesson1Dummy = Lesson("Compilation", false, 1, null, null, "Assignment",
-        LessonType.TUTORIAL_PREPARATION, null, weekDummy, emptyList(), emptyList(),emptyList(),1)
+        LessonType.TUTORIAL_PREPARATION, null, null, weekDummy, emptyList(), emptyList(),emptyList(),1)
     val lesson2Dummy = Lesson("First program", true, 2, Timestamp.from(Instant.now()),
         Timestamp.from(Instant.now().plusMillis(24 * 3600 * 1000)), "Another description",
-        LessonType.TUTORIAL, "secret", weekDummy, emptyList(), emptyList(),emptyList(),2)
+        LessonType.TUTORIAL, "secret", null, weekDummy, emptyList(), emptyList(),emptyList(),2)
     val week = weekDummy.copy(lessons = listOf(lesson1Dummy, lesson2Dummy))
     val lesson1 = lesson1Dummy.copy(week = week)
     val lesson2 = lesson2Dummy.copy(week = week)
 
     val sdto1 = SubjectFindDTO(subject1.id, subject1.name, subject1.code)
     val smdto1 = SemesterFindDTO(semester.id, semester.code, semester.from, semester.until)
-    val courseDto = CourseFindDTO(course.id, course.name, course.shortName, sdto1, smdto1, 0, 0, null)
+    val courseDto = CourseFindDTO(course.id, course.name, course.shortName, sdto1, smdto1, null)
     val weekDto = WeekFindDTO(week.id, week.name, week.from, week.until, courseDto)
 
-    val gdto1 = LessonGetDTO(lesson1.id, weekDto, lesson1.name, lesson1.hidden, lesson1.type, lesson1.lockCode,
+    val gdto1 = LessonGetDTO(lesson1.id, weekDto, lesson1.name, lesson1.hidden, lesson1.type, lesson1.lockCode, lesson1.referenceSolutionAccessibleFrom,
         lesson1.timeStart, lesson1.timeEnd, lesson1.description, emptyList(),emptyList())
-    val gdto2 = LessonGetDTO(lesson2.id, weekDto, lesson2.name, lesson2.hidden, lesson2.type, lesson2.lockCode,
+    val gdto2 = LessonGetDTO(lesson2.id, weekDto, lesson2.name, lesson2.hidden, lesson2.type, lesson2.lockCode, lesson1.referenceSolutionAccessibleFrom,
         lesson2.timeStart, lesson2.timeEnd, lesson2.description, emptyList(),emptyList())
 
     beforeTest { // Reset counters
@@ -149,7 +158,7 @@ class LessonServiceTests(
     }
 
     val cdto = LessonCreateDTO(week.id, lesson1.name, lesson1.hidden, lesson1.order, lesson1.type,
-        lesson1.lockCode, lesson1.timeStart, lesson1.timeEnd, lesson1.description)
+        lesson1.lockCode, lesson1.referenceSolutionAccessibleFrom, lesson1.timeStart, lesson1.timeEnd, lesson1.description)
 
     "create" {
         given(weekRepository.getReferenceById(week.id)).willReturn(week)
@@ -173,7 +182,7 @@ class LessonServiceTests(
     }
 
     val updateDto = LessonUpdateDTO("UpdatedName", null, null, null,
-        "code", null, null, "Updated description")
+        "code", null, null, null, "Updated description")
 
     "update" {
         given(lessonRepository.getReferenceById(lesson1.id)).willReturn(lesson1)

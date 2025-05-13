@@ -16,15 +16,15 @@ import org.springframework.web.server.ResponseStatusException
  * @property lessonRepository the repository for handling Lesson entities.
  * @property lessonModuleRepository the repository for handling LessonModule entities.
  * @property logRepository the repository for handling Log entities.
+ * @property logService the service for handling Log entities.
  * @property userRepository the repository for handling User entities.
  */
 @Service
 class WeekService (override val repository: WeekRepository, private val courseRepository: CourseRepository,
                    private val lessonRepository: LessonRepository, private val lessonModuleRepository: LessonModuleRepository,
-                   private val logRepository: LogRepository,
+                   private val logRepository: LogRepository,  private val logService: LogService, private val lessonService: LessonService,
                    userRepository: UserRepository)
 : IServiceImpl<Week, WeekFindDTO, WeekGetDTO, WeekCreateDTO, WeekUpdateDTO>(repository, userRepository) {
-
     /**
      * Creates a new week based on the provided data transfer objects.
      *
@@ -40,7 +40,7 @@ class WeekService (override val repository: WeekRepository, private val courseRe
         if (!course.canEdit(user))
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         val week = repository.saveAndFlush(converter.toEntity(dto, course))
-        logRepository.saveAndFlush(createLogEntry(userDto, week, "create"))
+        logService.log(userDto, week, "create")
         converter.toGetDTO(week)
     }
 
@@ -55,7 +55,7 @@ class WeekService (override val repository: WeekRepository, private val courseRe
     override fun update(id: Int, dto: WeekUpdateDTO, userDto: UserAuthenticateDto?)
         = checkEditAccess(id, userDto) { week, _ ->
             val updatedWeek = repository.saveAndFlush(converter.merge(week, dto))
-            logRepository.saveAndFlush(createLogEntry(userDto, updatedWeek, "update"))
+            logService.log(userDto, updatedWeek, "update")
             converter.toGetDTO(updatedWeek)
         }
 
@@ -69,8 +69,16 @@ class WeekService (override val repository: WeekRepository, private val courseRe
     override fun delete(id: Int, userDto: UserAuthenticateDto?): Unit
         = checkEditAccess(id, userDto) { week, _ ->
             repository.delete(week)
-            logRepository.saveAndFlush(createLogEntry(userDto, week, "delete"))
+            logService.log(userDto, week, "delete")
         }
+
+    @Transactional
+    fun findAllTaught(userDto: UserAuthenticateDto?) = tryCatch {
+        val user = getUser(userDto)
+        repository.findAllTaught(user).map {
+            converter.toGetDTO(it, user)
+        }
+    }
 
     /**
      * Updates lesson order and week
@@ -88,7 +96,7 @@ class WeekService (override val repository: WeekRepository, private val courseRe
                 }
                 .mapIndexed { ix, lesson -> lesson.copy(order = ix, week = week) }
             ).map {
-                logRepository.saveAndFlush(createLogEntry(userDto, it, "update"))
+                logService.log(userDto, it, "update")
             }
         }
 
@@ -107,27 +115,13 @@ class WeekService (override val repository: WeekRepository, private val courseRe
                 throw ResponseStatusException(HttpStatus.FORBIDDEN)
 
             // Step 1: create the week
-            val newWeek = week.copy(course = newCourse, lessons = emptyList(), id = 0)
+            val newWeek = week.copy(name = (week.name ?: "Unnamed") + " (Copy)", course = newCourse, lessons = emptyList(), id = 0)
             val weekFlushed = repository.saveAndFlush(newWeek)
-            logRepository.saveAndFlush(createLogEntry(userDto, newWeek, "create"))
+            logService.log(userDto, newWeek, "create")
 
-            // Step 2: copy the lessons (hidden, without lock code)
-            val newLessons = lessonRepository.saveAllAndFlush(week.lessons.map {
-                it.copy(hidden = true, lockCode = null, week = weekFlushed, modules = emptyList(), id = 0)
-            })
-
-            newLessons.map {
-                logRepository.saveAndFlush(createLogEntry(userDto, it, "create"))
-            }
-
-            // Step 3: copy the modules
-            week.lessons.forEachIndexed { ix, lesson ->
-                lessonModuleRepository.saveAllAndFlush(lesson.modules.map { lm ->
-                    // Keep the order, dependency and module, but change the lesson
-                    LessonModule(newLessons[ix], lm.module, lm.order, lm.dependsOn)
-                }).map {
-                    logRepository.saveAndFlush(createLogEntry(userDto, it, "create"))
-                }
+            // Step 2: copy the lessons
+            week.lessons.forEach { lesson ->
+                lessonService.cloneLessonToWeek(lesson.id, newWeek.id, userDto)
             }
 
             // Step 3: return new week with lessons and modules

@@ -2,10 +2,8 @@ package cz.fit.cvut.wrzecond.trainer.service
 
 import cz.fit.cvut.wrzecond.trainer.dto.*
 import cz.fit.cvut.wrzecond.trainer.entity.User
-import cz.fit.cvut.wrzecond.trainer.repository.SandboxUserRepository
-import cz.fit.cvut.wrzecond.trainer.repository.SubjectGuarantorRepository
+import cz.fit.cvut.wrzecond.trainer.repository.*
 import cz.fit.cvut.wrzecond.trainer.service.helper.ConverterService
-import cz.fit.cvut.wrzecond.trainer.repository.UserRepository
 import cz.fit.cvut.wrzecond.trainer.service.helper.FileService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -23,12 +21,15 @@ import java.time.Instant
 
 @SpringBootTest(classes = [UserService::class])
 class UserServiceTests(
-        @MockBean val userRepository: UserRepository,
-        @MockBean val sandboxUserRepository: SandboxUserRepository,
-        @MockBean val subjectGuarantorRepository: SubjectGuarantorRepository,
-        @MockBean(answer = Answers.CALLS_REAL_METHODS) val converterService: ConverterService,
-        @MockBean val fileService: FileService,
-        service: UserService
+    @MockBean val userRepository: UserRepository,
+    @MockBean val sandboxUserRepository: SandboxUserRepository,
+    @MockBean val subjectGuarantorRepository: SubjectGuarantorRepository,
+    @MockBean(answer = Answers.CALLS_REAL_METHODS) val converterService: ConverterService,
+    @MockBean val fileService: FileService,
+    @MockBean val moduleRepository: ModuleRepository,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+
+    service: UserService
 ): StringSpec({
 
     val user1 = User("user1", "user1", "user1", Timestamp.from(Instant.now()), false,

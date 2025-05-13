@@ -32,7 +32,7 @@ const translate = (key, param = undefined) => {
 }
 
 const loadStudentRequest = async () => {
-  await studentModuleApi.getStudentModuleRequest(lesson.value.id, module.value.id)
+  await studentModuleApi.getStudentModuleRequests(lesson.value.id, module.value.id)
       .then((response) => {
         module.value.studentRequest = response
         reloadHook.value = new Date().getTime()
@@ -74,7 +74,7 @@ const submitRequestTeacher = () => {
     percent: module.value.type === 'ASSIGNMENT' ? evalPercent.value : null
   }).then(async () => {
     // Update the data
-    await studentModuleApi.getStudentModuleRequestTeacher(lesson.value.id, module.value.id, module.value.teacher)
+    await studentModuleApi.getStudentModuleRequestsTeacher(lesson.value.id, module.value.id, module.value.teacher)
         .then((response) => {
           module.value.studentRequest = response
           reloadHook.value = new Date().getTime()

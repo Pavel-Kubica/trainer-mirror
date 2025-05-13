@@ -12,14 +12,14 @@ const { t } = useLocale()
 const props = defineProps(['showAll'])
 const userStore = useUserStore()
 
-const notifications = ref([])
+const notifications = ref(null)
 const error = ref(null)
 
 const getNotificationLink = (notification) => {
   if (notification.isStudent)
     return new Nav.ModuleDetail(notification.lesson, notification.module)
   else
-    return new Nav.ModuleUserDetail(notification.lesson, notification.module, notification.user)
+    return new Nav.LessonSolutionsModule(notification.lesson, notification.module, notification.user)
 }
 
 const getNotificationText = (notification) => {
@@ -28,7 +28,7 @@ const getNotificationText = (notification) => {
   const suffix = !notification.isStudent && notification.satisfied ? '</span>' : ''
   const type = notification.type.toLowerCase()
   const student = notification.isStudent ? "" : "_teacher"
-  const escapedComment = notification.comment.replace("<", "&lt;").replace(">", "&gt;")
+  const escapedComment = notification.comment.replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#39;")
   return prefix + t(`$vuetify.notification_${type}${student}`, name, notification.module.name, escapedComment ?? '') + suffix
 }
 
@@ -62,7 +62,7 @@ onMounted(async () => {
         <v-card-title>{{ t('$vuetify.notification_menu_title') }}</v-card-title>
         <v-switch v-if="showAll && userStore.isAnyTeacher" v-model="userStore.hideSatisfiedNotifications" hide-details class="ps-2"
                   color="purple"
-                  :label="t(`$vuetify.notification_${userStore.hideSatisfiedNotifications ? 'show' : 'hide'}_satisfied`)" />
+                  :label="t(`$vuetify.notification_show_satisfied`)" />
         <v-list>
           <v-list-item v-for="notification in notifications.filter((not) => !userStore.hideSatisfiedNotifications || !not.satisfied)"
                        :key="notification.id" :to="getNotificationLink(notification).routerPath()" @click="markAllRead">

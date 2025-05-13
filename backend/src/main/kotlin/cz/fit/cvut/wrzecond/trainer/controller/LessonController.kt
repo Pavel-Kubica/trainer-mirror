@@ -7,6 +7,7 @@ import cz.fit.cvut.wrzecond.trainer.service.LessonService
 import cz.fit.cvut.wrzecond.trainer.service.UserService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 /**
@@ -105,5 +106,39 @@ class LessonController(override val service: LessonService, userService: UserSer
         = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
             setCookie(loginSecret, response)
             service.cloneLesson(id, courseId, user) }
+    /**
+     * Clones a lesson from one week.
+     *
+     * @param id The ID of the lesson to be cloned.
+     * @param weekId The ID of the week into which the lesson will be cloned.
+     * @param request The HTTP request object containing request details.
+     * @param response The HTTP response object for sending response details.
+     * @param loginSecret The cookie value used for user authentication.
+     * @return A LessonGetDTO object.
+     */
+    @PostMapping("/{id}/weeks/{weekId}")
+    fun cloneLessonToWeek(@PathVariable id: Int, @PathVariable weekId: Int,
+                    request: HttpServletRequest, response: HttpServletResponse,
+                    @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String)
+            = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
+        setCookie(loginSecret, response)
+        service.cloneLessonToWeek(id, weekId, user) }
 
+    /**
+     * Updates the order of lessonModules within a lesson
+     *
+     * @param id The ID of the lesson to update the order of lessonModules in.
+     * @param dto DTO containing the IDs of lessonModules in their new order.
+     * @param request The HTTP request object that contains request details.
+     * @param response The HTTP response object for sending response details.
+     * @param loginSecret The cookie value used for user authentication
+     */
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{id}/modules")
+    fun editModuleOrder(@PathVariable id: Int, @RequestBody dto: LessonModuleOrderDTO,
+                        request: HttpServletRequest, response: HttpServletResponse,
+                        @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String)
+            = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
+        setCookie(loginSecret, response)
+        service.editModuleOrder(id, dto, user) }
 }

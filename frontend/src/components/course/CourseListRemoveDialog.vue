@@ -4,7 +4,7 @@ import { useLocale } from 'vuetify'
 import { courseUserApi } from '@/service/api'
 
 const appState = inject('appState')
-const props = defineProps(['course'])
+const props = defineProps(['courseId'])
 const { t } = useLocale()
 
 const deleteCourseUserDialog = inject('deleteCourseUserDialog')
@@ -12,7 +12,7 @@ const deleteCourseUser = inject('deleteCourseUser')
 const loadCourseUsers = inject('loadCourseUsers')
 
 const deleteCourseUserFn = (userId) => {
-  courseUserApi.courseUserDelete(props.course, userId)
+  courseUserApi.courseUserDelete(props.courseId, userId)
       .then(() => {
         deleteCourseUserDialog.value = false
         appState.value.notifications.push({

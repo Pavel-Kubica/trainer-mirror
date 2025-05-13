@@ -11,7 +11,7 @@ const emit = defineEmits(['deleteButtonClicked'])
 
 
 <template>
-  <v-dialog v-model="displayDeleteDialog" width="300px">
+  <v-dialog v-model="displayDeleteDialog" width="300px" @keydown.enter="emit('deleteButtonClicked')">
     <v-card
       :title="t('$vuetify.course_delete')"
       :text="`${t('$vuetify.course_delete_question')} ${course.name}?`">
@@ -20,7 +20,7 @@ const emit = defineEmits(['deleteButtonClicked'])
           {{ t('$vuetify.dialog_close') }}
         </v-btn>
         <v-btn variant="tonal" color="red" class="ml-13" @click="emit('deleteButtonClicked')">
-          {{ t('$vuetify.dialog_delete') }}
+          {{ t('$vuetify.action_delete') }}
         </v-btn>
       </v-card-actions>
     </v-card>

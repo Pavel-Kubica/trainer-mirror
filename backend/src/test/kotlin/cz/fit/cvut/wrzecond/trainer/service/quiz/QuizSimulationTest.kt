@@ -20,6 +20,7 @@ import org.openqa.selenium.support.ui.WebDriverWait
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.ActiveProfiles
 import java.sql.Driver
 import java.sql.Timestamp
@@ -49,7 +50,11 @@ class ConcurrentQuizTest(
     @Autowired val questionService: QuestionService,
     @Autowired val quizQuestionService: QuizQuestionService,
     @Autowired val quizroomService: QuizroomService,
-    @Autowired val quizroomStudentService: QuizroomStudentService
+    @Autowired val quizroomStudentService: QuizroomStudentService,
+    @Autowired val moduleRepository: ModuleRepository,
+    @Autowired val lessonModuleRepository: LessonModuleRepository,
+    @Autowired val userService: UserService,
+
 ) {
     private val numStudents = 1
     private val baseUrl = "http://localhost:8080"
@@ -112,7 +117,7 @@ class ConcurrentQuizTest(
         )
         lesson = lessonService.create(
             LessonCreateDTO(
-                week.id, "Test Lesson Description", false, 1, LessonType.TUTORIAL, null,
+                week.id, "Test Lesson Description", false, 1, LessonType.TUTORIAL, null, null,
                 null, null, "description"
             ), teacherAuth
         )

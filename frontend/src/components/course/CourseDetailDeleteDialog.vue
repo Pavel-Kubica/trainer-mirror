@@ -30,10 +30,10 @@ const deleteCallback = (entityId) => {
 </script>
 
 <template>
-  <v-dialog v-model="deleteDialog" width="auto">
+  <v-dialog v-model="deleteDialog" width="auto" @keydown.enter="deleteCallback(deleteLesson ? deleteLesson.id : deleteWeek.id)">
     <v-card :title="translate('title')">
-      <v-card-item>
-        {{ translate('confirm') }} <strong>{{ deleteLesson ? deleteLesson.name : deleteWeek.name }}</strong>?
+      <v-card-item class="text-center" :style="{'white-space': 'pre-line'}">
+        {{ translate('confirm_p1') }}<strong>{{ deleteLesson ? deleteLesson.name : deleteWeek.name }}</strong>{{ translate('confirm_p2') }}
       </v-card-item>
       <v-card-actions>
         <div style="width: 100%" class="d-flex flex-row justify-space-between pa-2">
@@ -41,7 +41,7 @@ const deleteCallback = (entityId) => {
             {{ t('$vuetify.dialog_close') }}
           </v-btn>
           <v-btn color="red" @click="deleteCallback(deleteLesson ? deleteLesson.id : deleteWeek.id)">
-            {{ t('$vuetify.dialog_delete') }}
+            {{ t('$vuetify.action_delete') }}
           </v-btn>
         </div>
       </v-card-actions>

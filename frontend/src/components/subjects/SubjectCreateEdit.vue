@@ -51,7 +51,6 @@ const submitAllowed = () => {
 }
 
 const submit = () => {
-  console.log("submit");
   if (!submitAllowed())
     return false
 
@@ -85,7 +84,6 @@ const submit = () => {
 
 const loadSubjectEdit = async () => {
   if (props.subjectId) {
-    console.log("edit subject");
     subjectApi.subjectDetail(props.subjectId)
         .then(async (result) => {
           guarantors.value = await userApi.getAllUsers();
@@ -100,7 +98,6 @@ const loadSubjectEdit = async () => {
     alreadySelectedGuarantors.value = await subjectApi.subjectGuarantors(props.subjectId)
     subjectGuarantors.value = alreadySelectedGuarantors.value
   } else {
-    console.log("create subject");
     appState.value.navigation = [new Nav.SubjectCreate()]
     subject.value = null
     subjectData.value = {
@@ -109,7 +106,6 @@ const loadSubjectEdit = async () => {
     }
   }
   onBeforeRouteLeave((to, from, next) => {
-    console.log("onBeforeRouteLeave")
     if (JSON.stringify(subject.value) === JSON.stringify(subjectData.value) || to.name === 'subject-edit') { // ok
       next()
       return

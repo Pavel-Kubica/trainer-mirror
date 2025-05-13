@@ -7,7 +7,7 @@ import CodeEditor from '@/components/custom/CodeEditor.vue'
 import {
   MODULE_EDIT_ITEMS, MODULE_EDIT_CODE_INFO,
   MODULE_EDIT_CODE_TEAC, MODULE_EDIT_CODE_ENV,
-  MODULE_EDIT_CODE_TEST, DEFAULT_CODE_CONTENT, MODULE_FILE_CODE
+  MODULE_EDIT_CODE_TEST, DEFAULT_CODE_CONTENT_C, DEFAULT_CODE_FILENAME_C
 } from "@/plugins/constants";
 import LoadingScreen from "@/components/custom/LoadingScreen.vue";
 import CodeEditModulePartInformation from '@/components/modules/code/edit/CodeEditModulePartInformation.vue'
@@ -102,11 +102,11 @@ const reload = async () => {
     libraryType: 'LIB_C',
     tests: [],
     files: [{
-      name: MODULE_FILE_CODE,
+      name: DEFAULT_CODE_FILENAME_C,
       tmp: true,
       id: -1,
       codeLimit: 1024,
-      content: DEFAULT_CODE_CONTENT,
+      content: DEFAULT_CODE_CONTENT_C,
       reference: '',
       headerFile: ''
     }],

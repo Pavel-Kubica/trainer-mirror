@@ -71,7 +71,7 @@ onMounted(() =>
   <v-select v-if="!moduleData.id" v-model="moduleData.type" :label="translate('type')"
             :items="MODULE_TYPE_VALUES(t)" item-title="title" item-value="item" @update:modelValue="clearOtherTabs" />
   <v-select v-if="moduleData.type !== 'TEMPLATE'" v-model="moduleData.depends" :label="translate('depend')"
-            :items="lesson.modules" item-title="name" item-value="id" />
+            :items="lesson.modules.filter((mod) => mod.id !== +moduleData.id)" item-title="name" item-value="id" />
   <v-select :label="translate('author')" disabled :model-value="moduleData.author.name" />
   <v-select v-model="moduleEditors" :label="translate('editors')"
             :disabled="moduleData.author.username !== userStore.user.username || props.readOnly" multiple :items="teachers" item-title="name" item-value="id" />

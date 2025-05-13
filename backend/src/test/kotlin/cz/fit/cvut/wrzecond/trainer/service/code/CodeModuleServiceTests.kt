@@ -5,10 +5,14 @@ import cz.fit.cvut.wrzecond.trainer.dto.code.*
 import cz.fit.cvut.wrzecond.trainer.entity.*
 import cz.fit.cvut.wrzecond.trainer.entity.Module
 import cz.fit.cvut.wrzecond.trainer.entity.code.*
+import cz.fit.cvut.wrzecond.trainer.repository.LessonModuleRepository
+import cz.fit.cvut.wrzecond.trainer.repository.ModuleRepository
+import cz.fit.cvut.wrzecond.trainer.repository.StudentModuleRepository
 import cz.fit.cvut.wrzecond.trainer.repository.UserRepository
 import cz.fit.cvut.wrzecond.trainer.repository.code.CodeModuleFileRepository
 import cz.fit.cvut.wrzecond.trainer.repository.code.CodeModuleRepository
 import cz.fit.cvut.wrzecond.trainer.repository.code.CodeModuleTestRepository
+import cz.fit.cvut.wrzecond.trainer.service.UserService
 import cz.fit.cvut.wrzecond.trainer.service.helper.AuthorizationService
 import cz.fit.cvut.wrzecond.trainer.service.helper.ConverterService
 import cz.fit.cvut.wrzecond.trainer.service.helper.FileService
@@ -17,6 +21,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import org.mockito.Answers
 import org.mockito.kotlin.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpStatus
@@ -33,6 +38,10 @@ class CodeModuleServiceTests(
     @MockBean val authorizationService: AuthorizationService,
     @MockBean(answer = Answers.CALLS_REAL_METHODS) val converterService: ConverterService,
     @MockBean val fileService: FileService,
+    @MockBean val moduleRepository: ModuleRepository,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val studentModuleRepository: StudentModuleRepository,
+    @MockBean val userService: UserService,
     service: CodeModuleService
 ): StringSpec({
 
@@ -61,7 +70,7 @@ class CodeModuleServiceTests(
     val weekDummy = Week("First week", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()),
         course, emptyList(), 1)
     val lesson1Dummy = Lesson("Compilation", false, 1, null, null, "Assignment",
-        LessonType.TUTORIAL_PREPARATION, null, weekDummy, emptyList(), emptyList(), emptyList(),1)
+        LessonType.TUTORIAL_PREPARATION, null, null, weekDummy, emptyList(), emptyList(), emptyList(),1)
     val module1Dummy = Module("Dummy", ModuleType.TEXT, "Text of module", ModuleDifficulty.EASY,
         false, false, false, false, 100, null, Timestamp.from(Instant.now()),
         emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(),emptyList(),user, 1)

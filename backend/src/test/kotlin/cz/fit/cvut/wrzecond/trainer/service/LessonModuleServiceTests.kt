@@ -41,6 +41,8 @@ class LessonModuleServiceTests(
     @MockBean val studentRatingRepository: StudentRatingRepository,
     @MockBean val authorizationService: AuthorizationService,
     @MockBean val logRepository: LogRepository,
+    @MockBean val logService: LogService,
+    @MockBean val userService: UserService,
     val converterService: ConverterService,
     val service: LessonModuleService
 ): StringSpec({
@@ -69,10 +71,10 @@ class LessonModuleServiceTests(
     val weekDummy = Week("First week", Timestamp.from(Instant.now()), Timestamp.from(Instant.now()),
         course, emptyList(), 1)
     val lesson1Dummy = Lesson("Compilation", false, 1, null, null, "Assignment",
-        LessonType.TUTORIAL_PREPARATION, null, weekDummy, emptyList(), emptyList(),emptyList(),1)
+        LessonType.TUTORIAL_PREPARATION, null, null, weekDummy, emptyList(), emptyList(),emptyList(),1)
     val lesson2Dummy = Lesson("First program", true, 2, Timestamp.from(Instant.now()),
         Timestamp.from(Instant.now().plusMillis(24 * 3600 * 1000)), "Another description",
-        LessonType.TUTORIAL, "secret", weekDummy, emptyList(), emptyList(),emptyList(),2)
+        LessonType.TUTORIAL, "secret", null, weekDummy, emptyList(), emptyList(),emptyList(),2)
     val week = weekDummy.copy(lessons = listOf(lesson1Dummy, lesson2Dummy))
 
     val module1Dummy = Module("Dummy", ModuleType.TEXT, "Text of module", ModuleDifficulty.EASY,
@@ -86,7 +88,7 @@ class LessonModuleServiceTests(
 
     val sdto1 = SubjectFindDTO(subject1.id, subject1.name, subject1.code)
     val smdto1 = SemesterFindDTO(semester.id, semester.code, semester.from, semester.until)
-    val courseDto = CourseFindDTO(course.id, course.name, course.shortName, sdto1, smdto1, 0, 0, null)
+    val courseDto = CourseFindDTO(course.id, course.name, course.shortName, sdto1, smdto1, null)
     val weekDto = WeekFindDTO(week.id, week.name, week.from, week.until, courseDto)
 
     val mfdto1 = ModuleFindDTO(module1.id, module1.name, emptyList(), emptyList(),
@@ -95,7 +97,7 @@ class LessonModuleServiceTests(
         module1.minPercent, module1.file, lm1.dependsOn?.id, module1.author.username, emptyList(), null, null, null,
         null, lm1.order, null, false, emptyList(), emptyList())
 
-    val gdto1 = LessonGetDTO(lesson1.id, weekDto, lesson1.name, lesson1.hidden, lesson1.type, lesson1.lockCode,
+    val gdto1 = LessonGetDTO(lesson1.id, weekDto, lesson1.name, lesson1.hidden, lesson1.type, lesson1.lockCode, lesson1.referenceSolutionAccessibleFrom,
         lesson1.timeStart, lesson1.timeEnd, lesson1.description, listOf(mfdto1),emptyList(),)
 
     beforeTest { // Reset counters

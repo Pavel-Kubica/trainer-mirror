@@ -61,7 +61,6 @@ function connect() {
               options.value = tmp
             }
             else{
-              console.log(JSON.parse(questionData.value.possibleAnswersData))
               options.value = JSON.parse(questionData.value.possibleAnswersData)
             }
 
@@ -130,8 +129,6 @@ const submitAnswer = () => {
       if(!radioAnswers.value)
         return
 
-      console.log(questionData.value.questionType)
-
       const answer = {
         lesson: lessonId,
         quizroom: quizroomData.value.id,
@@ -146,8 +143,6 @@ const submitAnswer = () => {
             error.value = `Chyba při načítání: ${err.code}`
           })
     }else{
-      console.log(questionData)
-
       if (answers.value.length === 0)
         return
 
@@ -230,7 +225,6 @@ onMounted( () => {
                               options.value = tmp
                             }
                             else{
-                              console.log(JSON.parse(questionData.value.possibleAnswersData))
                               options.value = JSON.parse(questionData.value.possibleAnswersData)
                             }
 

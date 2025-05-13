@@ -53,19 +53,19 @@ class NotificationController(service: UserService, private val notificationServi
     }
 
     /**
-     * Deletes all notifications for current user.
+     * Mark all notifications as read for current user.
      *
      * @param request The HTTP request object containing request details.
      * @param response The HTTP response object for sending response details.
      * @param loginSecret The cookie value used for user authentication.
      */
-    @DeleteMapping
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteNotifications(request: HttpServletRequest, response: HttpServletResponse,
+    @PatchMapping()
+    @ResponseStatus(HttpStatus.OK)
+    fun markAllNotificationsRead(request: HttpServletRequest, response: HttpServletResponse,
                             @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String) : Unit
     = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
         setCookie(loginSecret, response)
-        notificationService.deleteNotifications(user)
+        notificationService.markAllNotificationsRead(user)
     }
 
 }

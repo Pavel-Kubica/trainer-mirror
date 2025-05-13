@@ -12,6 +12,9 @@ import java.util.*
 @Repository
 interface StudentModuleRepository: IRepository<StudentModule> {
 
+    //TODO
+    //Seems like getByStudentModule and findByUserModuleLesson is duplicate
+
     /**
      * Retrieves a StudentModule entity based on the provided student, module, and lesson.
      *

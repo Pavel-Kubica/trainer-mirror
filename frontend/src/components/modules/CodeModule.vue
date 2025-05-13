@@ -26,7 +26,7 @@ const error = ref(null)
 provide('codeData', codeData)
 provide('runtime', runtime)
 
-const reloadHook = inject('reloadHook')
+const modulesReloadHook = inject('modulesReloadHook')
 const saveResults = async (percent = null) => {
   if (props.teacher || codeData.value.codeModuleIdCheck !== moduleData.value.id) // switched tabs, teacher
     return
@@ -35,7 +35,7 @@ const saveResults = async (percent = null) => {
   await saveStudentModuleFile().catch((err) => console.log(err.code)) // save code & tests
   if (percent) { // save percent
     await studentModuleApi.putStudentModule(lesson.value.id, moduleData.value.id, {percent: percent})
-    reloadHook.value = new Date().getTime() // update left menu
+    modulesReloadHook.value = new Date().getTime() // update left menu
   }
 }
 provide('saveResults', saveResults)
@@ -71,7 +71,7 @@ const saveStudentModuleFile = async () => {
 }
 
 const sendCodeComments = async () => {
-  if (!codeData.value.creatingComments || !codeData.value.newComments || !moduleData.value.studentRequest?.requestId) return
+  if (!codeData.value.creatingComments || !codeData.value.newComments || !moduleData.value.codeCommentSourceRequest?.requestId) return
   await postCodeComments()
   loadCodeComments()
 }
@@ -79,7 +79,7 @@ const sendCodeComments = async () => {
 const postCodeComments = async () => {
   for (const [fileName, comments] of Object.entries(codeData.value.newComments)) {
     for (const [rowNumber, comment] of Object.entries(comments)) {
-      studentModuleApi.postStudentModuleRequestCodeComment(moduleData.value.studentRequest.requestId, {
+      studentModuleApi.postStudentModuleRequestCodeComment(moduleData.value.codeCommentSourceRequest.requestId, {
         fileName: fileName, rowNumber: rowNumber, comment: comment
       }).catch((err) => error.value = err.code)
     }
@@ -88,14 +88,14 @@ const postCodeComments = async () => {
 
 requestAnswerCallbacks.value.push(sendCodeComments)
 const loadCodeComments = async () => {
-  if (!moduleData?.value?.studentRequest?.requestId) return
-  await studentModuleApi.getStudentModuleRequestCodeComments(moduleData.value.studentRequest.requestId)
+  if (!moduleData?.value?.codeCommentSourceRequest?.requestId) return
+  await studentModuleApi.getStudentModuleRequestCodeComments(moduleData.value.codeCommentSourceRequest.requestId)
       .then((comments) => codeData.value.comments = comments)
       .catch((err) => { error.value = err.code })
 }
-watch(() => moduleData?.value?.studentRequest?.requestId, async () => await loadCodeComments())
-watch(() => moduleData?.value?.studentRequest?.teacherComment, async () => await loadCodeComments())
-watch(() => moduleData?.value?.studentRequest?.codeCommentsHook, async () => await loadCodeComments())
+watch(() => moduleData?.value?.codeCommentSourceRequest?.requestId, async () => await loadCodeComments())
+watch(() => moduleData?.value?.codeCommentSourceRequest?.teacherComment, async () => await loadCodeComments())
+watch(() => moduleData?.value?.codeCommentSourceRequest?.codeCommentsHook, async () => await loadCodeComments())
 
 const loadModule = async () => {
   moduleData.value.lesson = lesson.value
@@ -129,7 +129,7 @@ const loadModule = async () => {
       })
       .catch((err) => { error.value = err.code })
 
-  if (moduleData.value.studentRequest?.teacherComment) {
+  if (moduleData.value?.codeCommentSourceRequest?.teacherComment) {
     await loadCodeComments()
   }
 }
@@ -180,7 +180,7 @@ onMounted(() => {
 <template>
   <LoadingScreen :items="codeData" :error="error">
     <template #content>
-      <CodeModuleBase />
+      <CodeModuleBase v-if="moduleData.lesson" :teacher="teacher" />
     </template>
     <template #error>
       <CodeModuleErrorTab :error="error" />

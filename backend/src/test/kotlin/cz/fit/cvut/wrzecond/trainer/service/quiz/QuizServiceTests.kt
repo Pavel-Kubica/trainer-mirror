@@ -36,6 +36,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.sql.Timestamp
 import java.time.Instant
 import java.util.*
+import cz.fit.cvut.wrzecond.trainer.service.LogService
 
 
 @SpringBootTest(classes = [QuizService::class])
@@ -45,6 +46,7 @@ class QuizServiceTests (
     @MockBean val moduleRepo: ModuleRepository,
     @MockBean val quizQuestionRepo: QuizQuestionRepo,
     @MockBean val logRepo: LogRepository,
+    @MockBean val logService: LogService,
     @MockBean val userRepo: UserRepository,
     @MockBean(answer = Answers.CALLS_REAL_METHODS) val converterService: ConverterService,
     @MockBean val fileService: FileService,

@@ -3,9 +3,7 @@ package cz.fit.cvut.wrzecond.trainer.service
 import cz.fit.cvut.wrzecond.trainer.dto.*
 import cz.fit.cvut.wrzecond.trainer.entity.*
 import cz.fit.cvut.wrzecond.trainer.entity.Module
-import cz.fit.cvut.wrzecond.trainer.repository.StudentModuleRequestRepository
-import cz.fit.cvut.wrzecond.trainer.repository.StudentRatingRepository
-import cz.fit.cvut.wrzecond.trainer.repository.UserRepository
+import cz.fit.cvut.wrzecond.trainer.repository.*
 import cz.fit.cvut.wrzecond.trainer.service.helper.AuthorizationService
 import cz.fit.cvut.wrzecond.trainer.service.helper.ConverterService
 import cz.fit.cvut.wrzecond.trainer.service.helper.FileService
@@ -28,6 +26,10 @@ class NotificationServiceTests(
     @MockBean val authorizationService: AuthorizationService,
     @MockBean(answer = Answers.CALLS_REAL_METHODS) val converterService: ConverterService,
     @MockBean val fileService: FileService,
+    @MockBean val moduleRepository: ModuleRepository,
+    @MockBean val lessonModuleRepository: LessonModuleRepository,
+    @MockBean val userService: UserService,
+
     val service: NotificationService
 ): StringSpec({
 
@@ -57,10 +59,10 @@ class NotificationServiceTests(
     val weekDummy = Week("First week", Timestamp.from(time), Timestamp.from(time),
         course, emptyList(), 1)
     val lesson1Dummy = Lesson("Compilation", false, 1, null, null, "Assignment",
-        LessonType.TUTORIAL_PREPARATION, null, weekDummy, emptyList(), emptyList(),emptyList(),1)
+        LessonType.TUTORIAL_PREPARATION, null, null, weekDummy, emptyList(), emptyList(),emptyList(),1)
     val lesson2Dummy = Lesson("First program", true, 2, Timestamp.from(time),
         Timestamp.from(time.plusMillis(24 * 3600 * 1000)), "Another description",
-        LessonType.TUTORIAL, "secret", weekDummy, emptyList(), emptyList(),emptyList(),2)
+        LessonType.TUTORIAL, "secret", null, weekDummy, emptyList(), emptyList(),emptyList(),2)
     val week = weekDummy.copy(lessons = listOf(lesson1Dummy, lesson2Dummy))
 
     val module1Dummy = Module("Dummy", ModuleType.TEXT, "Text of module", ModuleDifficulty.EASY,
@@ -121,10 +123,10 @@ class NotificationServiceTests(
         verify(studentModuleRequestRepository).findNotificationsTeacher(eq(user), eq(true), anyOrNull(), eq(RoleLevel.TEACHER))
     }
 
-    "deleteNotifications" {
+    "markAllNotificationsRead" {
         given(userRepository.saveAndFlush(any<User>())).willReturn(userStudent)
 
-        service.deleteNotifications(userStudentAuthDto)
+        service.markAllNotificationsRead(userStudentAuthDto)
 
         verify(userRepository).saveAndFlush(any<User>())
     }

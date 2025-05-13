@@ -9,7 +9,7 @@ import DiscussionComment from "@/components/modules/discussion/DiscussionComment
 import DiscussionInput from "@/components/modules/discussion/DiscussionInput.vue";
 
 
-const comments = ref([])
+const comments = ref(null)
 const commentNum = ref(0)
 const maxSize = ref(3)
 const props = defineProps(['moduleId'])

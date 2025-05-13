@@ -53,7 +53,7 @@ class NotificationService(override val repository: UserRepository, environment: 
      * Mark all notifications read for current user
      * sets user lastNotificationTime to current datetime
      */
-    fun deleteNotifications(userDto: UserAuthenticateDto?) = tryCatch {
+    fun markAllNotificationsRead(userDto: UserAuthenticateDto?) = tryCatch {
         val user = getUser(userDto)
         val now = Timestamp.from(Instant.now())
         saveAndFlush(user.copy(lastNotificationTime = now))

@@ -4,12 +4,10 @@ import {ref} from "vue";
 import {useLocale} from "vuetify";
 import GuideListRow from "@/components/guide/GuideListRow.vue";
 
+defineProps(['guides'])
+
 const error = ref(null)
 const { t } = useLocale()
-
-import guides from "@/resources/guides.js"
-
-
 
 </script>
 

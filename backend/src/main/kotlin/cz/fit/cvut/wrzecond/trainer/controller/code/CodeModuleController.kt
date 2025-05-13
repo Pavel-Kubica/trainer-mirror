@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import kotlin.math.log
 
 
 /**
@@ -62,5 +63,22 @@ class CodeModuleController(override val service : CodeModuleService, userService
         = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
             setCookie(loginSecret, response)
             service.deleteFile(id, user) }
+
+    /**
+     * Checks whether the reference solution should be accessible, based on criteria defined by Jan Matoušek.
+     *
+     * @param id The unique identifier of the code module
+     * @param request The HTTP request object that contains request details.
+     * @param response The HTTP response object for sending response details.
+     * @param loginSecret The cookie value used for user authentication.
+     */
+    @GetMapping("/is_reference_accessible/{id}")
+    fun isReferenceSolutionAccessible(@PathVariable id: Int,
+                                      request: HttpServletRequest, response: HttpServletResponse,
+                                      @CookieValue(value = "loginSecret", defaultValue = "") loginSecret: String)
+    = authenticate(request, VisibilitySettings.LOGGED, loginSecret) { user ->
+        setCookie(loginSecret, response)
+        service.getByModuleIdWithCheckReferenceSolutionAccessible(id, user)
+    }
 
 }

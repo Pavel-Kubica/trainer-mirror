@@ -28,7 +28,7 @@ onMounted(async() => {
       .catch((err) => { error.value = err.code })
   lessonUserApi.lessonUserList(props.lessonId)
       .then(async (result) => {
-        appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result.course), new Nav.LessonUserList(result, t)]
+        appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result.course), new Nav.LessonProgressOverview(result, t)]
         result.modules = result.modules.filter((module) => {
           return module.type !== 'TEXT' && scoringRule.value.modules.some((ruleModule) => ruleModule.id === module.id);
         });

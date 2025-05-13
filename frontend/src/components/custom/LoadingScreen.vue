@@ -1,13 +1,9 @@
 <script setup>
 import { getErrorMessage } from '@/plugins/constants'
 import { useLocale } from 'vuetify'
-import { watch } from 'vue'
 const { t } = useLocale()
 
-const props = defineProps(['items', 'error'])
-watch(props, async (newProps, oldProps) => {
-  if (newProps !== oldProps) console.log(newProps.error ? newProps.error : newProps.items)
-})
+defineProps(['items', 'error'])
 </script>
 
 <template>

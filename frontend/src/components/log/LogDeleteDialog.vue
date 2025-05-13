@@ -56,7 +56,7 @@ const dateRules = computed(() => {
             {{ t('$vuetify.dialog_close') }}
           </v-btn>
           <v-btn class="ml-15" variant="tonal" color="red" type="submit">
-            {{ t('$vuetify.dialog_delete') }}
+            {{ t('$vuetify.action_delete') }}
           </v-btn>
         </v-card-actions>
       </v-card>

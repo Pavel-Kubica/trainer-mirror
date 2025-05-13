@@ -1,51 +1,46 @@
 <script setup>
-import {onMounted, ref, watch} from "vue";
+import {onMounted, ref, inject, watch} from "vue";
 import TextEditor from "@/components/custom/TextEditor.vue";
 import { useLocale } from 'vuetify'
 import {getErrorMessage} from "@/plugins/constants";
 import {useUserStore} from "@/plugins/store";
 
 
-const props = defineProps(["translatedMdFiles", "markdownId", "returnRoute"]);
+const props = defineProps(["mdFiles", "markdownId", "returnRoute"]);
 const userStore = useUserStore()
 
+const appState = inject('appState')
 const selectedMdFileContent = ref('');
-const mdFiles = ref([])
-
 const error = ref(null)
 const { t } = useLocale()
 
 
-function loadAllMdFiles(){
-  mdFiles.value = userStore.locale === 'customEn' ?
-      props.translatedMdFiles.mdFilesEn : props.translatedMdFiles.mdFilesCz;
-}
-
 function loadMdFile(id) {
-  if(!mdFiles.value)
+  if (!props.mdFiles)
     return
-  try{
-    selectedMdFileContent.value = mdFiles.value[id].content
+  try {
+    selectedMdFileContent.value = props.mdFiles[id].content
   }
-  catch (e){
+  catch (e) {
     error.value = e
-    console.log(e)
+    console.error(e)
   }
 }
 
 onMounted(() => {
-      loadAllMdFiles()
       loadMdFile(props.markdownId)
 })
 
+watch(() => props.markdownId, () => {
+  loadMdFile(props.markdownId)
+})
 watch(() => userStore.locale, () => {
-  loadAllMdFiles()
-  loadMdFile(0);
+  loadMdFile(props.markdownId);
 });
 </script>
 
 <template>
-  <v-navigation-drawer>
+  <v-navigation-drawer v-model="appState.leftDrawer">
     <v-card class="mx-auto">
       <v-list density="comfortable">
         <v-list-item :to="returnRoute" link>

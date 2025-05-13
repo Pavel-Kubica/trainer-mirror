@@ -5,6 +5,8 @@ import {subjectApi, topicApi} from '@/service/api'
 import quizApi from '@/service/quizApi'
 import LoadingScreen from '@/components/custom/LoadingScreen.vue'
 import QuestionListDialogRow from "@/components/modules/quiz/QuestionListDialogRow.vue";
+import DeleteDialog from "@/components/custom/DeleteDialog.vue";
+import {diacriticInsensitiveStringIncludes} from "@/plugins/constants";
 
 const props = defineProps(['quizId', 'dismiss', 'state', 'reload', 'addQuestion', 'deleteQuestion'])
 const { t } = useLocale()
@@ -25,8 +27,9 @@ provide('topics', topics)
 provide('subjects', subjects)
 provide('quizQuestions', quizQuestions)
 
-const customSearch = (question) => (!searchId.value || `${question.id}`.includes(searchId.value))
-    && (!searchText.value || question.questionData.toLowerCase().includes(searchText.value.toLowerCase()))
+const customSearch = (question) =>
+       (!searchId.value || `${question.id}`.includes(searchId.value))
+    && (!searchText.value || diacriticInsensitiveStringIncludes(question.questionData.toLowerCase(), searchText.value.toLowerCase()))
     && (!searchAuthors.value.length || searchAuthors.value.includes(question.author))
     && (!searchTypes.value.length || searchTypes.value.includes(question.questionType))
     && (!searchTopics.value.length || question.topics.map((t) => t.id).some((id) => searchTopics.value.includes(id)))
@@ -51,6 +54,11 @@ const clearSearch = () => {
   searchSubjects.value = []
 }
 
+const questionDeleteDialog = ref(false)
+const questionToDelete = ref(null)
+provide('deleteDialog', questionDeleteDialog)
+provide('questionToDelete', questionToDelete)
+
 const reloadDialog = () => {
   Promise.all([
     props.quizId ? quizApi.quizDetail(props.quizId) : null,
@@ -59,6 +67,7 @@ const reloadDialog = () => {
     subjectApi.listSubjects()
   ])
       .then((result) => {
+        console.log(result)
         let [qz, que, top, sub] = result
         quiz.value = qz
         questions.value = que
@@ -69,26 +78,58 @@ const reloadDialog = () => {
         error.value = err.code
       })
 }
+
+const deleteQuestion = async (question) => {
+  console.log(question)
+  questions.value = null
+  await props.deleteQuestion(question.id)
+  quizApi.deleteQuestion(question.id)
+      .then(() => {
+        props.reload()
+        reloadDialog()
+      })
+      .catch((err) => { error.value = err.code })
+  questionDeleteDialog.value = false
+}
+
 onMounted(async () => {
   reloadDialog()
 })
 </script>
 
 <template>
+  <DeleteDialog title="$vuetify.quiz_module.question_list_delete_question_title"
+                text-start="$vuetify.quiz_module.question_list_delete_question_text_p1"
+                :item-name="questionToDelete?.questionData"
+                text-before-line-break="$vuetify.quiz_module.question_list_delete_question_text_p2"
+                text-second-line="$vuetify.irreversible_action"
+                :on-cancel="() => questionDeleteDialog = false"
+                :on-confirm="() => deleteQuestion(questionToDelete)"
+                :text-confirm-button="'$vuetify.action_delete'" />
   <v-card :title="t('$vuetify.quiz_module.question_list_add_title')">
     <LoadingScreen :items="questions" :error="error">
       <template #content>
         <div class="d-flex mt-4" style="gap: 16px">
-          <v-text-field v-model="searchId" class="flex-grow-0" type="number"
-                        :label="t('$vuetify.quiz_module.question_list_header_id')" />
-          <v-text-field v-model="searchText" :label="t('$vuetify.quiz_module.question_list_header_text')" />
-          <v-select v-model="searchAuthors[0]" :label="t('$vuetify.quiz_module.question_list_header_author')"
-                    :items="[...new Set(questions.map((que) => que.author))].sort()" />
-          <v-select v-model="searchTypes" :label="t('$vuetify.quiz_module.question_list_header_type')"
-                    :items="['','TRUEFALSE', 'MULTICHOICE']" />
-          <v-autocomplete v-model="searchTopics" :items="topics" item-title="name" item-value="id"
-                          :label="t('$vuetify.quiz_module.question_list_header_topics')" multiple
-                          :no-data-text="t('$vuetify.quiz_module.question_list_topics_empty')">
+          <v-text-field v-model="searchId" style="flex: 0 0 15.5%" type="number" :label="t('$vuetify.module_list_header_id')" />
+          <v-text-field v-model="searchText" style="flex: 0 0 15.5%" :label="t('$vuetify.module_list_header_name')" />
+          <v-select v-model="searchAuthors" style="flex: 0 0 15.5%" :label="t('$vuetify.module_list_header_author')"
+                    :items="[...new Set(questions.map((q) => q.author))].sort()"
+                    multiple>
+            <template #selection="{ index, item }">
+              <v-chip v-if="searchAuthors.length && searchAuthors.length <= 2" size="small">
+                <span>{{ item.title }}</span>
+              </v-chip>
+              <span v-else-if="searchAuthors.length && index === 0" class="text-caption align-self-center">
+                {{ t('$vuetify.module_list_header_authors_selected', searchAuthors.length) }}
+              </span>
+            </template>
+          </v-select>
+          <v-select v-model="searchTypes" style="flex: 0 0 15.5%" :label="t('$vuetify.module_list_header_type')"
+                    :items="[...new Set(questions.map((q) => q.questionType))].sort()" multiple />
+          <v-autocomplete v-model="searchTopics" style="flex: 0 0 15.5%" :items="topics" item-title="name" item-value="id"
+                          :label="t('$vuetify.module_list_header_topics')"
+                          :no-data-text="t('$vuetify.module_list_topics_empty')"
+                          multiple>
             <template #selection="{ index, item }">
               <v-chip v-if="searchTopics.length && searchTopics.length <= 2" size="small">
                 <span>{{ item.title }}</span>
@@ -124,7 +165,7 @@ onMounted(async () => {
             <QuestionListDialogRow :custom-search="customSearch" :dismiss="dismiss" :reload-dialog="reloadDialog"
                                    :reload-source="reload"
                                    :topic-chip-color="topicChipColor" :subject-chip-color="subjectChipColor"
-                                   :add-question="addQuestion" :delete-question="deleteQuestion" />
+                                   :add-question="addQuestion" />
             <tr v-if="!questions.filter(customSearch).length">
               <td colspan="7">
                 {{ t('$vuetify.quiz_module.question_list_search_empty') }}

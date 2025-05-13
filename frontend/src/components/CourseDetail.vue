@@ -1,16 +1,17 @@
 <script setup>
 import { ref, inject, onMounted, watch, provide } from 'vue'
 import { useLocale } from 'vuetify'
-import { courseApi, courseUserApi } from '@/service/api'
+import { courseApi } from '@/service/api'
 import * as Nav from '@/service/nav'
 
 import LoadingScreen from '@/components/custom/LoadingScreen.vue'
 import CourseDetailHeader from '@/components/course/CourseDetailHeader.vue'
 import CourseDetailDeleteDialog from '@/components/course/CourseDetailDeleteDialog.vue'
-import CourseDetailCopyDialog from '@/components/course/CourseDetailCopyDialog.vue'
 import CourseDetailEditWeekDialog from '@/components/course/CourseDetailEditWeekDialog.vue'
 import CourseDetailWeekRow from '@/components/course/CourseDetailWeekRow.vue'
 import {useUserStore} from "@/plugins/store";
+import CourseJoinCodeDialog from "@/components/course/CourseJoinCodeDialog.vue";
+import CourseDetailImportDialog from "@/components/course/CourseDetailImportDialog.vue";
 
 const userStore = useUserStore()
 const appState = inject('appState')
@@ -35,37 +36,24 @@ provide('deleteLessonEntity', deleteLesson)
 provide('deleteWeekEntity', deleteWeek)
 
 const copyDialog = ref(false)
-const copyLesson = ref(null)
-const copyWeek = ref(null)
+const copyTargetWeekId = ref(null)
 provide('copyDialog', copyDialog)
-provide('copyLessonEntity', copyLesson)
-provide('copyWeekEntity', copyWeek)
+provide('copyTargetWeekId', copyTargetWeekId)
 
 const createEditDialog = ref(false)
 const editWeek = ref(null)
 provide('createEditDialog', createEditDialog)
 provide('editWeekEntity', editWeek)
 
+const joinCodeDialog = ref(false);
+provide('joinCodeDialog', joinCodeDialog);
+
 const loadCourseDetail = async () => {
-  if (props.user) {
-    courseUserApi.courseUserDetail(props.courseId, props.user)
-        .then((result) => {
-          appState.value.navigation = [
-            new Nav.CourseList(), new Nav.CourseDetail(result.course), new Nav.CourseUserList(result.course),
-            new Nav.CourseUserDetail(result.course, result.user)
-          ]
-          courseUser.value = result.user
-          isTeacher.value = false
-          course.value = result.course
-          console.log("course - ", course.value)
-        })
-        .catch((err) => { error.value = err.code })
-  }
-  else courseApi.courseDetail(props.courseId)
+  course.value = null; // Show loading
+  courseApi.courseDetail(props.courseId)
       .then((result) => {
         appState.value.navigation = [new Nav.CourseList(), new Nav.CourseDetail(result)]
         course.value = result
-        console.log("course - ", course.value)
         isTeacher.value = (result.role === 'TEACHER' || userStore.user.isAdmin || userStore.user.isGuarantor.includes(result.subject.id))
       })
       .catch((err) => { error.value = err.code })
@@ -77,9 +65,10 @@ watch(props, async () => { await loadCourseDetail() })
 
 <template>
   <CourseDetailDeleteDialog :delete-lesson="deleteLesson" :delete-week="deleteWeek" :callback="loadCourseDetail" />
-  <CourseDetailCopyDialog :course="course" :lesson="copyLesson" :week="copyWeek" />
+  <CourseDetailImportDialog :target-week-id="copyTargetWeekId" :target-course-id="$route.params.course" :callback="loadCourseDetail" />
   <CourseDetailEditWeekDialog :course-id="courseId" :course="course" :week="editWeek" :callback="loadCourseDetail" />
-  <v-card :title="t('$vuetify.course_detail_title')">
+  <CourseJoinCodeDialog :course-id="courseId" />
+  <v-card :title="course?.name">
     <template v-if="course" #append>
       <CourseDetailHeader v-if="isTeacher" :course="course" />
     </template>
@@ -88,7 +77,17 @@ watch(props, async () => { await loadCourseDetail() })
         <v-progress-linear v-if="!isTeacher" color="rgb(var(--v-theme-progress))" :model-value="average(course.weeks.flatMap((w) => w.lessons))" />
       </template>
       <template #content>
-        <v-table :class="isTeacher ? 'mt-0' : 'mt-4'">
+        <span v-if="isTeacher && !userStore.anonymous">
+          <v-btn variant="tonal" density="comfortable"
+                 @click="() => { editWeek = null; createEditDialog = true }">
+            {{ t('$vuetify.week_new') }}
+          </v-btn>
+          <v-btn variant="tonal" density="comfortable" class="ml-5"
+                 @click="copyTargetWeekId = undefined; copyDialog = true;">
+            {{ t('$vuetify.week_copy') }}
+          </v-btn>
+        </span>
+        <v-table class="mt-2 mr-2">
           <CourseDetailWeekRow v-for="week in course.weeks" :key="week.id" :week="week" :is-teacher="isTeacher" />
           <span v-if="!course.weeks.length">
             {{ t('$vuetify.course_detail_no_weeks') }}

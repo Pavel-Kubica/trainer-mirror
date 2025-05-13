@@ -26,7 +26,6 @@ const goToSandbox = async () => {
   if (!sandboxCourse.value) {
     sandboxCourse.value = await courseApi.createSandbox(userStore.user.id)
   }
-  console.log(sandboxCourse.value)
   await router.push(new Nav.CourseDetail(sandboxCourse.value).routerPath())
 }
 

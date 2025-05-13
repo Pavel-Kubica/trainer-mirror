@@ -8,7 +8,6 @@ import {scoringRuleApi as scoringRulesApi} from "@/service/api";
 
 const props = defineProps(['user'])
 const lesson = inject('lesson')
-const scoringRulesMap = inject('scoringRulesMap')
 const scoringRulesUser = ref([])
 const allPromises = []
 const allScoringRulesPoints = ref(0)
@@ -17,10 +16,6 @@ const userStore = useUserStore()
 
 
 onMounted(async() => {
-  console.log("lesson - ", lesson.value)
-  console.log("props.user - ", props.user.id)
-  console.log("scoringRulesMap row - ", scoringRulesMap.value.filter((sr) => sr.id === 4))
-
   for (const sr of lesson.value.scoringRules) {
     const promise = scoringRulesApi.getScoringRuleUser(sr.id,
         props.user.id).then((sr) => {

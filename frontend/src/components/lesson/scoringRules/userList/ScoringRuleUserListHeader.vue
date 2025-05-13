@@ -1,13 +1,9 @@
 <script setup>
-import {inject, onMounted} from 'vue'
+import {inject} from 'vue'
 import { useLocale } from 'vuetify'
 
 const lesson = inject('lesson')
 const { t } = useLocale()
-
-onMounted(() => {
-  console.log("lesson Header - ", lesson)
-})
 </script>
 
 <template>

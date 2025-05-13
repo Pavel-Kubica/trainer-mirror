@@ -18,6 +18,7 @@ data class Lesson(
     @Column(nullable = false, columnDefinition = "LONGTEXT") @Lob val description: String,
     @Column(nullable = false) val type: LessonType,
     @Column(nullable = true) val lockCode: String?,
+    @Column(nullable = true) val referenceSolutionAccessibleFrom: Timestamp?,
 
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -36,10 +37,10 @@ data class Lesson(
     override val id: Int = 0
 ) : IEntity(id) {
 
-    // Either the lesson is public (in which case student can see it)
+    // Either the lesson is public and has already started (in which case student can see it)
     // or it is hidden and the user has teacher rights
     override fun canView(user: User?)
-        = (!hidden && week.course.canView(user)) || (hidden && user != null && week.course.canEdit(user)) || user?.isAdmin ?: false
+        = (!hidden && week.course.canView(user) && (timeStart == null || (timeStart <= Timestamp(System.currentTimeMillis())))) || (user != null && week.course.canEdit(user)) || user?.isAdmin ?: false
 
     override fun canEdit(user: User)
         = week.course.canEdit(user) || user.isAdmin

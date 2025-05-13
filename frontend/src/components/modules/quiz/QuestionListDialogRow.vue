@@ -1,28 +1,18 @@
 <script setup>
 import {inject} from 'vue'
-import quizApi from '@/service/quizApi'
 import { useUserStore } from '@/plugins/store'
 import TooltipIconButton from '@/components/custom/TooltipIconButton.vue'
+import {useLocale} from "vuetify";
 
-const props = defineProps(['deleteQuestion','customSearch', 'dismiss', 'reloadDialog', 'reloadSource', 'topicChipColor', 'subjectChipColor', 'addQuestion'])
+const props = defineProps(['customSearch', 'dismiss', 'topicChipColor', 'subjectChipColor', 'addQuestion'])
 const userStore = useUserStore()
+const {t} = useLocale()
 
 const questions = inject('questions')
 //const quiz = inject('quiz')
-const error = inject('error')
 const quizQuestions = inject('quizQuestions')
-
-
-const deleteQuestion = async (question) => {
-  questions.value = null
-  await props.deleteQuestion(question.id)
-  quizApi.deleteQuestion(question.id)
-      .then(() => {
-        props.reloadSource()
-        props.reloadDialog()
-      })
-      .catch((err) => { error.value = err.code })
-}
+const questionDeleteDialog = inject('deleteDialog')
+const questionToDelete = inject('questionToDelete')
 
 /*const addQuestion = async (question) => {
   questions.value = null
@@ -63,10 +53,21 @@ const deleteQuestion = async (question) => {
     <td>
       <div class="d-flex justify-end">
         <TooltipIconButton v-if="question.author === userStore.user.username" icon="mdi-delete" color="red"
-                           @click="deleteQuestion(question)" />
+                           @click="questionToDelete = question; questionDeleteDialog = true" />
+        <div v-else style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px">
+          <v-icon icon="mdi-delete" color="grey" size="24" style="align-self: center" />
+          <v-tooltip activator="parent" location="top">
+            {{ t('$vuetify.quiz_module.question_list_cannot_delete') }}
+          </v-tooltip>
+        </div>
         <TooltipIconButton v-if="!quizQuestions.some((que) => que.id === question.id)" icon="mdi-plus" tooltip="$vuetify.action_add"
-                           color="rgb(var(--v-theme-anchor))" @click="props.addQuestion(question)" />
-        <v-btn v-else variant="text" style="visibility: hidden" icon />
+                           color="rgb(var(--v-theme-anchor))" @click="() => props.addQuestion(question)" />
+        <div v-else style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px">
+          <v-icon icon="mdi-plus" color="grey" size="24" style="align-self: center" />
+          <v-tooltip activator="parent" location="top">
+            {{ t('$vuetify.quiz_module.question_list_cannot_add') }}
+          </v-tooltip>
+        </div>
       </div>
     </td>
   </tr>

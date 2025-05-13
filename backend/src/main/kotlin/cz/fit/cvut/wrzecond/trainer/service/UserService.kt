@@ -1,11 +1,8 @@
 package cz.fit.cvut.wrzecond.trainer.service
 
 import cz.fit.cvut.wrzecond.trainer.dto.*
-import cz.fit.cvut.wrzecond.trainer.entity.CourseUser
-import cz.fit.cvut.wrzecond.trainer.entity.Role
 import cz.fit.cvut.wrzecond.trainer.entity.RoleLevel
 import cz.fit.cvut.wrzecond.trainer.entity.User
-import cz.fit.cvut.wrzecond.trainer.repository.CourseRepository
 import cz.fit.cvut.wrzecond.trainer.repository.SandboxUserRepository
 import cz.fit.cvut.wrzecond.trainer.repository.SubjectGuarantorRepository
 import cz.fit.cvut.wrzecond.trainer.repository.UserRepository
@@ -100,9 +97,9 @@ class UserService (override val repository: UserRepository, val subjectGuarantor
         return false
     }
 
-    fun isTeacher(userDto: UserAuthenticateDto?) : Boolean {
+    fun taughtCourses(userDto: UserAuthenticateDto?) : List<Int> {
         val user = getUser(userDto)
-        return user.isAdmin || subjectGuarantorRepository.findByGuarantor(user).isNotEmpty() || user.courses.any { it.role.level ==  RoleLevel.TEACHER}
+        return user.courses.filter { it.role.level == RoleLevel.TEACHER }.map { it.course.id }
     }
 
     /**

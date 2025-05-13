@@ -60,7 +60,6 @@ function connect() {
               options.value = tmp
             }
             else{
-              console.log(JSON.parse(questionData.value.possibleAnswersData))
               options.value = JSON.parse(questionData.value.possibleAnswersData)
             }
 

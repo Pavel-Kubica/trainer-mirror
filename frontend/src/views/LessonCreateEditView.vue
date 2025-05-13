@@ -1,15 +1,9 @@
 <script setup>
 import { inject } from 'vue'
-import { onBeforeRouteLeave } from 'vue-router'
 import LessonCreateEdit from '@/components/LessonCreateEdit.vue'
 
 const appState = inject('appState')
 appState.value.leftDrawer = true
-onBeforeRouteLeave((to) => {
-  if (['lesson-create', 'lesson-edit'].includes(to.name)) return
-  appState.value.leftDrawer = undefined
-  appState.value.rightDrawer = undefined
-})
 </script>
 
 <template>

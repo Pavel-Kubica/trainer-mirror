@@ -43,7 +43,7 @@ const deleteCallback = (entityId) => {
             {{ t('$vuetify.dialog_close') }}
           </v-btn>
           <v-btn color="red" @click="deleteCallback(deleteTopic.id)">
-            {{ t('$vuetify.dialog_delete') }}
+            {{ t('$vuetify.action_delete') }}
           </v-btn>
         </div>
       </v-card-actions>

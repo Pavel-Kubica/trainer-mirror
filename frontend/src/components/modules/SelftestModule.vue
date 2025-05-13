@@ -44,9 +44,6 @@ provide('currentSelectedAnswers', currentSelectedAnswers)
 watch(currentQuestionIndex, async (_, oldVal) => {
 
   api.editQuizroom(selftestData.value.id, {lesson: props.lesson, currQuestion: currentQuestionIndex.value - 1})
-      .then((res) => {
-        console.log(res)
-      })
       .catch(err => console.log(err))
 
   if(selftestState.value !== selftestStateList.value[1])

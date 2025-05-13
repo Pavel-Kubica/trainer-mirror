@@ -27,9 +27,9 @@ const getLocaleFormat = (current) => {
 <template>
   <!-- without time -->
   <Datepicker v-if="!props.withTime" :locale="getLocaleStr(current)" :format-locale="getLocaleFormat(current)" :enable-time-picker="false"
-              :teleport-center="true" format="yyyy-MM-dd" :dark="userStore.darkMode" :auto-apply="true" text-input />
+              :teleport-center="true" format="yyyy-MM-dd" :dark="userStore.darkMode" auto-apply text-input />
   <!-- with time -->
-  <Datepicker v-else :locale="getLocaleStr(current)" :format-locale="getLocaleFormat(current)" :auto-apply="true"
-              :teleport-center="true" :time-picker-inline="true" format="yyyy-MM-dd HH:mm:ss"
-              :minutes-grid-increment="15" :dark="userStore.darkMode" text-input />
+  <Datepicker v-else :locale="getLocaleStr(current)" :format-locale="getLocaleFormat(current)"
+              :teleport-center="true" :time-picker-inline="true" format="yyyy-MM-dd HH:mm"
+              :minutes-grid-increment="15" :dark="userStore.darkMode" auto-apply partial-flow text-input />
 </template>

@@ -10,9 +10,9 @@ a {
 }
 
 .max-height-no-tab, .max-height-tab-third, .max-height-tab, .max-height-tab-code, .cm-editor {
-    --layout-vertical-spacing: calc(100vh - var(--v-layout-top) - var(--v-layout-bottom) - 104px);
+    --layout-vertical-spacing: calc(100vh - var(--v-layout-top) - var(--v-layout-bottom) - 124px);
     --layout-tab-spacing: calc(var(--layout-vertical-spacing) - 130px);
-    --layout-cm-spacing: calc(var(--layout-vertical-spacing) - 90px);
+    --layout-cm-spacing: calc(var(--layout-vertical-spacing) - 100px);
 }
 
 @media only screen and (min-width: 1280px) {
@@ -25,7 +25,7 @@ a {
     }
 
     .max-height-no-tab {
-        height: calc(var(--layout-vertical-spacing) - 30px) !important;
+        height: calc(var(--layout-vertical-spacing) - 60px) !important;
     }
 
     .max-height-tab-code {
@@ -37,6 +37,6 @@ a {
     }
 
     .full-cm-editor .cm-editor {
-        height: calc(var(--layout-vertical-spacing) - 32px) !important;
+        height: calc(var(--layout-vertical-spacing) - 56px) !important;
     }
 }
